@@ -11,7 +11,7 @@ PROCESSED_DIR = DATA_DIR / "processed"
 OMNI2_URL = "https://spdf.gsfc.nasa.gov/pub/data/omni/low_res_omni/omni2_all_years.dat"
 
 # GFZ Potsdam definitive Kp/ap, 1932-present.
-GFZ_KP_URL = "https://kp.gfz-potsdam.de/app/files/Kp_ap_Ap_SN_F107_since_1932.txt"
+GFZ_KP_URL = "https://kp.gfz.de/app/files/Kp_ap_Ap_SN_F107_since_1932.txt"
 
 # First year used for modelling (ACE era, continuous L1 coverage).
 START_YEAR = 1998
