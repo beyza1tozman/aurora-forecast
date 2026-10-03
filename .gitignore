@@ -7,7 +7,7 @@
 design-references/
 
 # Data
-data/
+/data/
 *.parquet
 *.csv
 *.dat
