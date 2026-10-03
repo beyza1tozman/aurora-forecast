@@ -89,7 +89,12 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
 - UptimeRobot pings `/health` every 5 min. This gives uptime monitoring and should also keep the Space awake (check this on Day 6).
 - **Scheduler:** APScheduler in-process. Every 15 min: fetch NOAA, run the forecast, and log it. Every hour: fetch the observed Kp (GFZ nowcast JSON API) and join it to past forecasts.
 - **Frontend:** plain HTML/CSS/JS plus **Leaflet**, served by FastAPI as static files. There is no Node build step, so Docker stays simple. Use the dark map tiles **CARTO Dark Matter**, which need no API key. Credit OpenStreetMap and CARTO on the map, and check CARTO's usage terms before relying on them.
-- **Live NOAA endpoints:** check them all on Day 1 (`plasma-*.json`, `mag-*.json`, `noaa-planetary-k-index.json`, `noaa-planetary-k-index-forecast.json`, `text/27-day-outlook.txt`). SWPC renames products from time to time.
+- **Live NOAA endpoints (checked on Day 1, 2026-10-03):**
+  - The old `products/solar-wind/plasma-*.json` and `mag-*.json` feeds are **gone (404)**. Real-time solar wind is now at `json/rtsw/rtsw_mag_1m.json` and `rtsw_wind_1m.json`: the last ~24 h at 1-min cadence.
+  - Each rtsw file mixes several spacecraft (SOLAR1 = SWFO-L1, ACE, IMAP). Use only rows with `active == true`, which is NOAA's operational choice and gives automatic failover.
+  - `json/rtsw/rtsw_ephemerides_1h.json` gives the spacecraft's `x_gse` distance (~1.41 million km), so the L1 → bow-shock delay can use the real distance, not a constant.
+  - The Kp feeds (`noaa-planetary-k-index*.json`) now return a list of objects rather than a list of lists.
+  - All URLs are in `aurora/config.py`. `tests/test_live_contracts.py` (`pytest -m network`) detects future format changes.
 
 ---
 

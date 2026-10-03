@@ -15,3 +15,24 @@ GFZ_KP_URL = "https://kp.gfz.de/app/files/Kp_ap_Ap_SN_F107_since_1932.txt"
 
 # First year used for modelling (ACE era, continuous L1 coverage).
 START_YEAR = 1998
+
+# --- Live feeds (verified 2026-10-03) ---
+# NOAA SWPC real-time solar wind: last ~24 h at 1-min cadence, measured at L1 (not shifted).
+# Each file mixes several spacecraft (e.g. SOLAR1 = SWFO-L1, ACE, IMAP); rows with
+# active == true belong to the spacecraft NOAA currently treats as operational.
+SWPC = "https://services.swpc.noaa.gov"
+NOAA_RTSW_MAG_URL = f"{SWPC}/json/rtsw/rtsw_mag_1m.json"
+NOAA_RTSW_WIND_URL = f"{SWPC}/json/rtsw/rtsw_wind_1m.json"
+# Hourly spacecraft positions (x_gse in km) -> exact L1-to-Earth propagation delay.
+NOAA_RTSW_EPHEMERIS_URL = f"{SWPC}/json/rtsw/rtsw_ephemerides_1h.json"
+# Estimated planetary Kp (past ~7 days) and observed + forecast Kp (3-day outlook).
+NOAA_KP_URL = f"{SWPC}/products/noaa-planetary-k-index.json"
+NOAA_KP_FORECAST_URL = f"{SWPC}/products/noaa-planetary-k-index-forecast.json"
+NOAA_3DAY_FORECAST_URL = f"{SWPC}/text/3-day-forecast.txt"
+NOAA_27DAY_OUTLOOK_URL = f"{SWPC}/text/27-day-outlook.txt"
+
+# GFZ nowcast Kp API, used to verify logged forecasts on /monitoring.
+GFZ_KP_API_URL = "https://kp.gfz.de/app/json/"
+
+# Open-Meteo hourly weather forecast (cloud cover).
+OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"

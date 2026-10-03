@@ -40,6 +40,12 @@ Clear and professional, like a modern space-data dashboard. **Not** cute or cozy
   and text-only for weeks.
 - `design-references/` is local inspiration only and is gitignored.
 
+## Git workflow
+- Do not commit after every small step. Commit only when a meaningful milestone is done and
+  working (e.g. the data download pipeline, the feature pipeline, a trained baseline), with
+  tests and lint passing.
+- Always ask the user before committing.
+
 ## Environment
 - Windows 11, Python, CPU only. Prefer pure-Python dependencies that install cleanly on Windows.
 - Default branch: `main`.
