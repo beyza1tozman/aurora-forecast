@@ -16,7 +16,7 @@ This is the decision interviewers are most likely to probe, and it shapes the wh
 | Horizon | Source | Why | Confidence shown |
 |---|---|---|---|
 | Now and the next 1–6 h | **Your LightGBM model** on L1 solar wind | L1 is about 1.5 million km upstream. Solar wind at 400–800 km/s reaches Earth in about 30–60 min, so you *measure* what will hit. Past about 1 h, skill comes from the persistence of storm conditions, so skill falls quickly with lead time. | High → medium |
-| Next 3 nights | **NOAA SWPC 3-day Kp forecast** (not your model) | Days-ahead storms come from CMEs that leave the Sun 1–3 days earlier. L1 data cannot see them yet. NOAA uses coronagraphs and WSA-Enlil modelling. Being honest about this is a strength in an interview. | Medium → low |
+| Next 3 nights | **NOAA SWPC 3-day Kp forecast**, calibrated on its own archive (your model for the hours it reaches tonight) | Days-ahead storms come from CMEs that leave the Sun 1–3 days earlier. L1 data cannot see them yet. NOAA uses coronagraphs and WSA-Enlil modelling. Being honest about this is a strength in an interview. | Medium → low |
 | Next ~4 weeks | **27-day recurrence**: Kp from one and two solar rotations ago, plus NOAA's 27-day outlook | Coronal holes last several rotations, so their fast-wind streams return about every 27 days. This works best in the declining phase of the solar cycle and badly for CMEs. | Low, shown as a "possible activity" hint only |
 
 On the cloud side, Open-Meteo forecasts also get less reliable past about 48 h. That is a second reason the 3-night outlook is fuzzier.
@@ -100,14 +100,14 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
 
 ## 3. Location score, explained simply
 
-`visibility = P(Kp ≥ Kp_needed(mag_lat)) × (1 − cloud) × darkness × moon_factor`
+`chance = P(Kp ≥ Kp_needed(mag_lat)) × clear_sky × darkness × moon_factor` (`aurora/location_score.py`)
 
 - **Geomagnetic latitude:** use a dipole from IGRF coefficients (g10, g11, h11), not `aacgmv2`, which has a painful C build on Windows. In Germany, geomagnetic latitude is close to geographic latitude (within about 1°). In North America it is much higher, which is why Americans see aurora further south.
-- **Kp_needed:** an empirical relation between Kp and the equatorward edge of the auroral oval (Starkov-type, roughly 66° − 2–3°·Kp). Then shift it by about 5° to allow for aurora at 100–300 km altitude being visible low on the northern horizon. Interpolate between the discrete Kp thresholds.
-- **Clouds:** Open-Meteo hourly `cloud_cover`, plus `cloud_cover_low`. Low cloud blocks the view most.
-- **Darkness:** sun elevation below −12° (nautical twilight). Use `skyfield`, which is pure Python and works on Windows; bundle `de421.bsp` (~17 MB) in the Docker image.
-- **Moon:** a mild penalty scaled by illumination and moon altitude. A strong aurora can still be seen under a full moon.
-- **Be honest:** this is a heuristic *score*, not a calibrated probability. Only the Kp part is calibrated. Label it "chance" in the UI and explain it in the README.
+- **Kp_needed** (`aurora/physics/oval.py`, decided Day 4): the classic Kp-map oval edge, 66.5° − 2.04°·Kp, shifted 1.5° equatorward for aurora seen low on the northern horizon (a 5° shift was too optimistic). Anchored to Central European experience: Hamburg (mlat 53.7) needs Kp ≈ 5.5, Berlin ≈ 6.3, Munich ≈ 8.2. A dipole is ~2–4° off corrected geomagnetic latitude in the UK and North America, so the anchors are only trusted for Central Europe. P(Kp ≥ k) for non-integer k: log-linear between integer anchors; the model gives k = 4–7, climatology fills k < 4 and scales k = 8, 9 from P(Kp≥7).
+- **Clouds** (changed Day 4): Open-Meteo low/mid/high layers, combined assuming random overlap: `(1−low)(1−mid)(1−0.5·high)`. Low and mid cloud block the view; thin high cloud only partly. (Using only total and low cloud gave a 40% chance under overcast altostratus.)
+- **Darkness** (changed Day 4): 1 below −12° sun elevation, 0 above −6°, linear between. Sun and moon positions come from low-precision Astronomical Almanac formulas in pure NumPy (`aurora/physics/sky.py`; sun ~0.01°, moon ~0.3°), checked against the 2024 eclipse and known full/new moons. This replaces `skyfield` + the 17 MB `de421.bsp`, which is far more precision than a darkness weight needs.
+- **Moon:** a mild penalty scaled by illumination and moon altitude, at most −40% for a full moon above 30°. A strong aurora can still be seen under a full moon.
+- **Be honest:** this is a heuristic *score*, not a calibrated probability. Only the Kp part is calibrated. Label it "chance" in the UI and explain it in the README. Where the cloud forecast ends, only `chance_if_clear` is shown.
 
 ---
 
@@ -206,10 +206,17 @@ aurora-forecast/
 - `evaluate.py`: BSS vs baselines, reliability diagrams, PR-AUC, storm windows, bootstrap CIs, feature importance (does Newell coupling come out on top?).
 - 2 h timebox for archived NOAA forecasts. Write `MODEL_CARD.md` while the results are fresh.
 
-**Day 4: Backend**
+**Day 4: Backend** — **done**
 - Live ingestion with the L1→bow-shock shift, then the shared features, then the forecast.
 - Physics modules (geomag, oval, sky), Open-Meteo client, location score, NOAA 3-day and 27-day outlook.
-- `/api/forecast?lat&lon`, `/health`, and DB models. API tests with mocked HTTP.
+- `/api/forecast?lat&lon`, `/health`. API tests with mocked HTTP. DB models moved to Day 6, where the scheduler first writes to them.
+
+*Day 4 decisions* (code: `aurora/data/noaa_live.py`, `aurora/live.py`, `aurora/outlook.py`, `app/services.py`):
+- **Bow-shock shift:** each 1-min L1 sample moves forward by (x_GSE − 90,000 km) / V, using the active spacecraft's measured distance and a 10-min median speed, then hourly means [t, t+1h) like OMNI (≥15 samples per hour; the still-filling hour is dropped).
+- **Issue time can be in the future:** the newest complete bow-shock hour may end after the wall clock (L1 lead ~45–90 min). The row must also have its `kp_last` interval already observed; otherwise an earlier row is used. Rows more than 3 h old are refused.
+- **Live Kp:** GFZ nowcast API for 30 days of history (closest to the definitive training target), NOAA estimates for intervals GFZ has not published. GFZ already lists the interval in progress with a provisional value, so unfinished intervals are dropped (found on the fixture: a placeholder 0).
+- **Nights:** NOAA's deterministic Kp is turned into class probabilities by `models/noaa_calibration.json` (lead day × forecast class → observed class counts from the archive, smoothed towards the same class pooled over lead days). The range is a Beta interval from the cell's sample size. For hours the model reaches (tonight), the model is used instead. Found live on 2026-10-04 during a Kp 5 storm: NOAA said 6% for tonight in Hamburg, the model 50%.
+- **Failure isolation:** each feed failing only blanks its own panel; `errors` in the response names the source.
 
 **Day 5: Frontend and briefing**
 - Leaflet map on CARTO Dark Matter tiles, click to choose a location, three panels (Now and hours / 3 nights / Weeks).
@@ -228,7 +235,7 @@ aurora-forecast/
 
 **Day 6: Deployment and ops**
 - Dockerfile, run locally, deploy to the HF Space, and set up the external Postgres.
-- Scheduler, forecast logging and observed-Kp verification job. `/monitoring` page in the same dashboard style: Brier score over time, a forecast-vs-observed plot, and the number of verified forecasts.
+- DB models (SQLAlchemy: forecasts, observations, briefings), scheduler, forecast logging and observed-Kp verification job. `/monitoring` page in the same dashboard style: Brier score over time, a forecast-vs-observed plot, and the number of verified forecasts.
 - Sentry, UptimeRobot, and CI deploying to HF on push to `main`.
 
 **Day 7: Buffer and polish**

@@ -49,7 +49,7 @@ def main() -> None:
             {
                 "latitude": 48.14,
                 "longitude": 11.58,
-                "hourly": "cloud_cover,cloud_cover_low",
+                "hourly": "cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high",
                 "forecast_days": 3,
                 "timezone": "UTC",
             },

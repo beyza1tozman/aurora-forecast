@@ -16,6 +16,11 @@ Baselines (deterministic, like NOAA's forecast):
 Observed and baseline Kp are GFZ definitive values. In real time NOAA only had
 its own estimated Kp, so persistence is slightly flattered here.
 
+Also writes models/noaa_calibration.json: for each lead day and NOAA forecast
+Kp class, the counts of observed Kp classes. aurora.outlook turns NOAA's
+deterministic forecast into class probabilities with it. It uses the whole
+archive, so it is a lookup table for the app, not an out-of-sample result.
+
 Usage:
     python scripts/evaluate_noaa.py
 """
@@ -30,7 +35,7 @@ import pandas as pd
 
 from aurora.config import NOAA_3DAY_ARCHIVE_URL, PROCESSED_DIR, RAW_DIR, ROOT
 from aurora.data.noaa_3day import parse_3day_forecast
-from aurora.dataset import kp_to_class, threshold_class
+from aurora.dataset import CLASS_LABELS, N_CLASSES, kp_to_class, threshold_class
 from aurora.metrics import contingency, hss, tss
 
 ARCHIVE_DIR = RAW_DIR / "noaa_3day"
@@ -126,6 +131,18 @@ def score(df: pd.DataFrame) -> list[dict]:
     return results
 
 
+def calibration_counts(df: pd.DataFrame) -> dict:
+    """counts[lead_day][forecast_class][observed_class] over the whole archive."""
+    fc, obs = kp_to_class(df["noaa"]).astype(int), kp_to_class(df["observed"]).astype(int)
+    counts = {}
+    for lead in sorted(df["lead_day"].unique()):
+        sel = (df["lead_day"] == lead).to_numpy()
+        table = np.zeros((N_CLASSES, N_CLASSES), dtype=int)
+        np.add.at(table, (fc[sel], obs[sel]), 1)
+        counts[str(int(lead))] = table.tolist()
+    return counts
+
+
 def print_table(results: list[dict]) -> None:
     print("\n| lead | forecast | MAE | RMSE | TSS Kp>=5 | HSS Kp>=5 | TSS Kp>=7 | HSS Kp>=7 |")
     print("|---|---|---|---|---|---|---|---|")
@@ -153,6 +170,14 @@ def main() -> None:
     }
     (ROOT / "reports" / "noaa_3day.json").write_text(json.dumps(out, indent=2))
     print("\nwrote reports/noaa_3day.json")
+    calibration = {
+        "period": period,
+        "issue_time_ut": ISSUE,
+        "classes": CLASS_LABELS,
+        "counts": calibration_counts(df),
+    }
+    (ROOT / "models" / "noaa_calibration.json").write_text(json.dumps(calibration, indent=1))
+    print("wrote models/noaa_calibration.json")
 
 
 if __name__ == "__main__":
