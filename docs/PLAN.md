@@ -59,7 +59,7 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
 - **Target for horizon h:** the Kp interval containing t+1h+h. Non-definitive (nowcast) Kp targets are dropped.
 - **Classes:** −/o/+ grouped into integer Kp (5− counts as 5, like NOAA G1): {≤3, 4, 5, 6, 7+}.
 - **Live-available inputs only:** By, Bz, |B|, V, n, T. E_y, dynamic pressure and Newell coupling are recomputed from them; OMNI's Dst/AE/E-field/pressure columns are not used.
-- **Split:** train 1998–2014, val 2015–2019, test 2020 → end of OMNI (Sep 2026). The first 30 days of val and test are embargo.
+- **Split:** train 1998–2014, val 2015–2019, test 2020 → end of OMNI (currently Aug 2026). The first 30 days of val and test are embargo.
 
 **Baselines and metrics**
 - Baselines: **persistence** (Kp now), **climatology** (base rate), and **27-day recurrence**. Plus **conditional persistence** (P(target class | current class), learned on train): 0/1 persistence has an inflated Brier score for rare events, so beating it proves little. This is the real bar.
@@ -73,9 +73,28 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
   | conditional persistence | **+0.28** [0.23, 0.33] | **+0.19** | **+0.12** | **+0.28** [0.14, 0.37] | **+0.18** | **+0.10** |
 
   Recurrence is poor because the test period is solar maximum (CME-driven storms do not recur).
+- **Model results (Day 3, test, BSS vs climatology)** from `scripts/evaluate.py` → `reports/metrics.json`.
+  Details, CIs and limitations are in `MODEL_CARD.md`.
+
+  | | Kp≥5 h=1 | h=3 | h=6 | Kp≥7 h=1 | h=3 | h=6 |
+  |---|---|---|---|---|---|---|
+  | LightGBM (calibrated) | **+0.45** [0.39, 0.49] | **+0.32** | **+0.21** | **+0.44** [0.29, 0.54] | **+0.27** | +0.11 |
+  | conditional persistence | +0.28 | +0.19 | +0.12 | +0.28 | +0.18 | +0.10 |
+
+  The model beats every baseline everywhere except Kp≥7 at 6 h, where it ties conditional persistence.
+  Temperatures are 0.95–0.98, so the raw model was nearly calibrated already. Feature importance: last
+  Kp first, then Newell coupling at 1 h and |B| / dynamic pressure at 3–6 h. The largest sudden-commencement storms
+  (May 10 2024, Oct 10 2024, Nov 12 2025, Jan 19 2026) got P(Kp≥6) < 0.01 three hours ahead. This
+  is the L1 warning-time limit and is the reason the 3-night panel uses NOAA.
 - Metrics per threshold: **Brier score and Brier Skill Score vs persistence and climatology**, reliability diagrams, PR-AUC (better than ROC-AUC for rare events), and TSS/HSS at a decision threshold.
 - **Storm-period evaluation:** test windows of ±2 days around each event with Kp≥7, scored separately. Also do an event-based check: did P(Kp≥6) rise before onset? Use bootstrap confidence intervals, because there are only a handful of Kp≥7 events and they will be wide. Say so.
-- **NOAA comparison:** NOAA's forecasts are 1–3 days ahead and yours are 1–6 h ahead, so a direct comparison is apples to oranges. Timebox the search for archived NOAA 3-day forecasts to 2 h on Day 3. If you find them, compare them with day-scale persistence. If not, cut it and say why.
+- **NOAA comparison (done on Day 3):** NOAA's forecasts are 1–3 days ahead and yours are 1–6 h ahead, so a direct comparison is apples to oranges. Instead, NOAA is scored against day-scale baselines.
+  NCEI archives the SWPC 3-day forecast text product from March 2022 (`aurora/data/noaa_3day.py` parses it;
+  early files use whole-number Kp). `scripts/evaluate_noaa.py` → `reports/noaa_3day.json`, 1,248 issues to Aug 2026:
+  - Day 1: NOAA ≈ persistence (MAE 1.14 vs 1.10, TSS Kp≥5 0.24 vs 0.23).
+  - Days 2–3: NOAA beats persistence and recurrence (TSS Kp≥5 0.15 / 0.10 vs ≤ 0.06), but never forecast Kp≥7 on day 3.
+
+  This supports the horizon split in section 1: our model for hours, NOAA with soft ranges for nights 2–3.
 
 ---
 
@@ -182,7 +201,7 @@ aurora-forecast/
 - `features.py` with tests that check no future data is used. The time split with an embargo gap.
 - Persistence, climatology and recurrence baselines, plus `metrics.py`. Your first results table is baselines only. This is the bar the model must beat.
 
-**Day 3: Model and evaluation** (the core ML day, so protect it)
+**Day 3: Model and evaluation** (the core ML day, so protect it) — **done**
 - Multiclass LightGBM per horizon, early stopping on val, temperature scaling.
 - `evaluate.py`: BSS vs baselines, reliability diagrams, PR-AUC, storm windows, bootstrap CIs, feature importance (does Newell coupling come out on top?).
 - 2 h timebox for archived NOAA forecasts. Write `MODEL_CARD.md` while the results are fresh.

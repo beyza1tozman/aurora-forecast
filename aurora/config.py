@@ -31,6 +31,12 @@ NOAA_KP_FORECAST_URL = f"{SWPC}/products/noaa-planetary-k-index-forecast.json"
 NOAA_3DAY_FORECAST_URL = f"{SWPC}/text/3-day-forecast.txt"
 NOAA_27DAY_OUTLOOK_URL = f"{SWPC}/text/27-day-outlook.txt"
 
+# NCEI archive of the SWPC 3-day forecast text product (March 2022 onwards),
+# laid out as {YYYY}/{MM}/{YYYYMMDD}{0030|1230}three_day_forecast.txt.
+NOAA_3DAY_ARCHIVE_URL = (
+    "https://www.ngdc.noaa.gov/stp/space-weather/swpc-products/daily_reports/3day_forecast"
+)
+
 # GFZ nowcast Kp API, used to verify logged forecasts on /monitoring.
 GFZ_KP_API_URL = "https://kp.gfz.de/app/json/"
 

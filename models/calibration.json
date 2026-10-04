@@ -1,0 +1,53 @@
+{
+  "features": [
+    "by_gsm",
+    "bz_gsm",
+    "b_mag",
+    "speed",
+    "density",
+    "temperature",
+    "bt",
+    "clock_angle",
+    "newell",
+    "ey",
+    "pdyn",
+    "bz_gsm_mean_3h",
+    "newell_mean_3h",
+    "speed_mean_3h",
+    "density_mean_3h",
+    "pdyn_mean_3h",
+    "bz_gsm_mean_6h",
+    "newell_mean_6h",
+    "speed_mean_6h",
+    "density_mean_6h",
+    "pdyn_mean_6h",
+    "bz_gsm_min_3h",
+    "bz_gsm_min_6h",
+    "bz_gsm_std_3h",
+    "bz_gsm_std_6h",
+    "bz_south_hours",
+    "kp_last",
+    "kp_prev",
+    "kp_max_24h",
+    "kp_27d",
+    "hours_into_bin",
+    "doy_sin",
+    "doy_cos",
+    "ut_sin",
+    "ut_cos"
+  ],
+  "horizons": {
+    "1": {
+      "temperature": 0.9817589690426897,
+      "best_iteration": 190
+    },
+    "3": {
+      "temperature": 0.9712662837620967,
+      "best_iteration": 165
+    },
+    "6": {
+      "temperature": 0.9536564290462584,
+      "best_iteration": 114
+    }
+  }
+}

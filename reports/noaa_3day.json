@@ -1,0 +1,342 @@
+{
+  "period": [
+    "2022-03-25",
+    "2026-08-31"
+  ],
+  "issue_time_ut": "0030",
+  "results": [
+    {
+      "lead_day": 1,
+      "forecast": "noaa",
+      "n": 8730,
+      "mae": 1.142955326460481,
+      "rmse": 1.466003529490657,
+      "kp5": {
+        "events": 452,
+        "forecast_yes": 602,
+        "hits": 134,
+        "false_alarms": 468,
+        "misses": 318,
+        "correct_negatives": 7810,
+        "tss": 0.23992478196819805,
+        "hss": 0.2073914789195413
+      },
+      "kp6": {
+        "events": 164,
+        "forecast_yes": 172,
+        "hits": 45,
+        "false_alarms": 127,
+        "misses": 119,
+        "correct_negatives": 8439,
+        "tss": 0.2595641873999875,
+        "hss": 0.25349964405686193
+      },
+      "kp7": {
+        "events": 74,
+        "forecast_yes": 52,
+        "hits": 17,
+        "false_alarms": 35,
+        "misses": 57,
+        "correct_negatives": 8621,
+        "tss": 0.22568629165209572,
+        "hss": 0.2646967272247877
+      }
+    },
+    {
+      "lead_day": 1,
+      "forecast": "persistence",
+      "n": 8730,
+      "mae": 1.103016418480336,
+      "rmse": 1.452589599906105,
+      "kp5": {
+        "events": 452,
+        "forecast_yes": 469,
+        "hits": 122,
+        "false_alarms": 347,
+        "misses": 330,
+        "correct_negatives": 7931,
+        "tss": 0.22799316666203412,
+        "hss": 0.22401059614613503
+      },
+      "kp6": {
+        "events": 164,
+        "forecast_yes": 189,
+        "hits": 50,
+        "false_alarms": 139,
+        "misses": 114,
+        "correct_negatives": 8427,
+        "tss": 0.2886511050494581,
+        "hss": 0.26857255261950036
+      },
+      "kp7": {
+        "events": 74,
+        "forecast_yes": 56,
+        "hits": 22,
+        "false_alarms": 34,
+        "misses": 52,
+        "correct_negatives": 8622,
+        "tss": 0.2933693860218814,
+        "hss": 0.33359488448551944
+      }
+    },
+    {
+      "lead_day": 1,
+      "forecast": "recurrence",
+      "n": 8730,
+      "mae": 1.2791905307369225,
+      "rmse": 1.69530943313428,
+      "kp5": {
+        "events": 452,
+        "forecast_yes": 427,
+        "hits": 41,
+        "false_alarms": 386,
+        "misses": 411,
+        "correct_negatives": 7892,
+        "tss": 0.04407834392044592,
+        "hss": 0.04526170395937682
+      },
+      "kp6": {
+        "events": 164,
+        "forecast_yes": 143,
+        "hits": 2,
+        "false_alarms": 141,
+        "misses": 162,
+        "correct_negatives": 8425,
+        "tss": -0.004265302984573158,
+        "hss": -0.004551106142094466
+      },
+      "kp7": {
+        "events": 74,
+        "forecast_yes": 55,
+        "hits": 0,
+        "false_alarms": 55,
+        "misses": 74,
+        "correct_negatives": 8601,
+        "tss": -0.006353974121996303,
+        "hss": -0.0072806633095713
+      }
+    },
+    {
+      "lead_day": 2,
+      "forecast": "noaa",
+      "n": 9984,
+      "mae": 1.1627604166666667,
+      "rmse": 1.4857428751387776,
+      "kp5": {
+        "events": 528,
+        "forecast_yes": 510,
+        "hits": 104,
+        "false_alarms": 406,
+        "misses": 424,
+        "correct_negatives": 9050,
+        "tss": 0.15403399477003538,
+        "hss": 0.15655351664028452
+      },
+      "kp6": {
+        "events": 186,
+        "forecast_yes": 118,
+        "hits": 27,
+        "false_alarms": 91,
+        "misses": 159,
+        "correct_negatives": 9707,
+        "tss": 0.13587368060631203,
+        "hss": 0.16556344526015968
+      },
+      "kp7": {
+        "events": 83,
+        "forecast_yes": 27,
+        "hits": 9,
+        "false_alarms": 18,
+        "misses": 74,
+        "correct_negatives": 9883,
+        "tss": 0.10661573675775722,
+        "hss": 0.16020911389905262
+      }
+    },
+    {
+      "lead_day": 2,
+      "forecast": "persistence",
+      "n": 9984,
+      "mae": 1.3637820512820513,
+      "rmse": 1.7611569462071768,
+      "kp5": {
+        "events": 528,
+        "forecast_yes": 536,
+        "hits": 60,
+        "false_alarms": 476,
+        "misses": 468,
+        "correct_negatives": 8980,
+        "tss": 0.06329795416089831,
+        "hss": 0.06284841542573501
+      },
+      "kp6": {
+        "events": 186,
+        "forecast_yes": 216,
+        "hits": 14,
+        "false_alarms": 202,
+        "misses": 172,
+        "correct_negatives": 9596,
+        "tss": 0.0546523648670894,
+        "hss": 0.0506455785799712
+      },
+      "kp7": {
+        "events": 83,
+        "forecast_yes": 64,
+        "hits": 4,
+        "false_alarms": 60,
+        "misses": 79,
+        "correct_negatives": 9841,
+        "tss": 0.04213277714433129,
+        "hss": 0.04752701396819819
+      }
+    },
+    {
+      "lead_day": 2,
+      "forecast": "recurrence",
+      "n": 9984,
+      "mae": 1.297008547008547,
+      "rmse": 1.715841069832249,
+      "kp5": {
+        "events": 528,
+        "forecast_yes": 505,
+        "hits": 50,
+        "false_alarms": 455,
+        "misses": 478,
+        "correct_negatives": 9001,
+        "tss": 0.0465793724042455,
+        "hss": 0.047557348567390086
+      },
+      "kp6": {
+        "events": 186,
+        "forecast_yes": 166,
+        "hits": 2,
+        "false_alarms": 164,
+        "misses": 184,
+        "correct_negatives": 9634,
+        "tss": -0.005985421646287261,
+        "hss": -0.00631868704773424
+      },
+      "kp7": {
+        "events": 83,
+        "forecast_yes": 66,
+        "hits": 0,
+        "false_alarms": 66,
+        "misses": 83,
+        "correct_negatives": 9835,
+        "tss": -0.006665993334006666,
+        "hss": -0.007419446588923652
+      }
+    },
+    {
+      "lead_day": 3,
+      "forecast": "noaa",
+      "n": 9976,
+      "mae": 1.13742983159583,
+      "rmse": 1.4530391357798365,
+      "kp5": {
+        "events": 531,
+        "forecast_yes": 301,
+        "hits": 66,
+        "false_alarms": 235,
+        "misses": 465,
+        "correct_negatives": 9210,
+        "tss": 0.09941289595128502,
+        "hss": 0.12495285306320383
+      },
+      "kp6": {
+        "events": 184,
+        "forecast_yes": 45,
+        "hits": 9,
+        "false_alarms": 36,
+        "misses": 175,
+        "correct_negatives": 9756,
+        "tss": 0.04523657289002558,
+        "hss": 0.07187479055920253
+      },
+      "kp7": {
+        "events": 80,
+        "forecast_yes": 0,
+        "hits": 0,
+        "false_alarms": 0,
+        "misses": 80,
+        "correct_negatives": 9896,
+        "tss": 0.0,
+        "hss": 0.0
+      }
+    },
+    {
+      "lead_day": 3,
+      "forecast": "persistence",
+      "n": 9976,
+      "mae": 1.4545910184442663,
+      "rmse": 1.8562724939917787,
+      "kp5": {
+        "events": 531,
+        "forecast_yes": 536,
+        "hits": 37,
+        "false_alarms": 499,
+        "misses": 494,
+        "correct_negatives": 8946,
+        "tss": 0.01684766299888641,
+        "hss": 0.016773133131384513
+      },
+      "kp6": {
+        "events": 184,
+        "forecast_yes": 216,
+        "hits": 2,
+        "false_alarms": 214,
+        "misses": 182,
+        "correct_negatives": 9578,
+        "tss": -0.010985009946007387,
+        "hss": -0.010121424363422138
+      },
+      "kp7": {
+        "events": 80,
+        "forecast_yes": 64,
+        "hits": 0,
+        "false_alarms": 64,
+        "misses": 80,
+        "correct_negatives": 9832,
+        "tss": -0.0064672594987873885,
+        "hss": -0.007179395135959795
+      }
+    },
+    {
+      "lead_day": 3,
+      "forecast": "recurrence",
+      "n": 9976,
+      "mae": 1.2969794172681102,
+      "rmse": 1.7161655203912198,
+      "kp5": {
+        "events": 531,
+        "forecast_yes": 519,
+        "hits": 58,
+        "false_alarms": 461,
+        "misses": 473,
+        "correct_negatives": 8984,
+        "tss": 0.06041897834524191,
+        "hss": 0.06107024229661307
+      },
+      "kp6": {
+        "events": 184,
+        "forecast_yes": 173,
+        "hits": 2,
+        "false_alarms": 171,
+        "misses": 182,
+        "correct_negatives": 9621,
+        "tss": -0.006593670076726343,
+        "hss": -0.006792903360085632
+      },
+      "kp7": {
+        "events": 80,
+        "forecast_yes": 70,
+        "hits": 0,
+        "false_alarms": 70,
+        "misses": 80,
+        "correct_negatives": 9826,
+        "tss": -0.007073565076798707,
+        "hss": -0.007541071909507137
+      }
+    }
+  ]
+}
