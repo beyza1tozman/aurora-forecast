@@ -43,7 +43,7 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
 - LightGBM handles NaNs natively, so data gaps from DSCOVR outages do not need imputation.
 
 **Split: time-based, with an embargo gap**
-- Train 1998–2014 · Val 2015–2019 · **Test 2020–2025**. Test covers the rise and maximum of Solar Cycle 25, including the May 2024 "Gannon" storm and the Oct 2024 storm.
+- Train 1998–2014 · Val 2015–2019 · **Test 2020 → Sep 2026** (end of OMNI). Test covers the rise and maximum of Solar Cycle 25, including the May 2024 "Gannon" storm and the Oct 2024 storm.
 - Leave a ~30-day gap between splits. Kp is autocorrelated and recurs every 27 days, so neighbouring rows would leak information.
 - Why not a random split? Neighbouring hours are nearly identical. A random split tests memory, not forecasting.
 
@@ -53,8 +53,26 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
 - **Calibration:** temperature scaling on the validation set. It has one parameter and keeps the probabilities monotonic.
 - Rarity: Kp≥5 is only a few percent of 3-hour bins, and Kp≥7 is well under 1%. Say this explicitly.
 
+**Conventions fixed on Day 2 (code: `aurora/features.py`, `aurora/dataset.py`)**
+- **Issue time:** an OMNI row labelled t averages [t, t+1h), so it is known at t+1h. Features in row t use rows ≤ t; the forecast is issued at t+1h.
+- **Kp as a feature:** only the last *completed* 3-h interval at issue time (start = floor(t−2h, 3h)), plus the one before, the 24 h max, the value 27 days earlier, and `hours_into_bin` (how stale it is).
+- **Target for horizon h:** the Kp interval containing t+1h+h. Non-definitive (nowcast) Kp targets are dropped.
+- **Classes:** −/o/+ grouped into integer Kp (5− counts as 5, like NOAA G1): {≤3, 4, 5, 6, 7+}.
+- **Live-available inputs only:** By, Bz, |B|, V, n, T. E_y, dynamic pressure and Newell coupling are recomputed from them; OMNI's Dst/AE/E-field/pressure columns are not used.
+- **Split:** train 1998–2014, val 2015–2019, test 2020 → end of OMNI (Sep 2026). The first 30 days of val and test are embargo.
+
 **Baselines and metrics**
-- Baselines: **persistence** (Kp now), **climatology** (base rate), and **27-day recurrence**.
+- Baselines: **persistence** (Kp now), **climatology** (base rate), and **27-day recurrence**. Plus **conditional persistence** (P(target class | current class), learned on train): 0/1 persistence has an inflated Brier score for rare events, so beating it proves little. This is the real bar.
+- TSS/HSS decision thresholds are chosen on val, then applied on test. BSS confidence intervals use a 7-day block bootstrap, because hours are autocorrelated.
+- **Baseline results (test, BSS vs climatology, 95% CI)** from `scripts/evaluate.py` → `reports/baselines.json`:
+
+  | | Kp≥5 h=1 | h=3 | h=6 | Kp≥7 h=1 | h=3 | h=6 |
+  |---|---|---|---|---|---|---|
+  | persistence (0/1) | −0.07 | −0.24 | −0.41 | −0.00 | −0.21 | −0.37 |
+  | recurrence | −0.88 | −0.88 | −0.88 | −1.01 | −1.01 | −1.01 |
+  | conditional persistence | **+0.28** [0.23, 0.33] | **+0.19** | **+0.12** | **+0.28** [0.14, 0.37] | **+0.18** | **+0.10** |
+
+  Recurrence is poor because the test period is solar maximum (CME-driven storms do not recur).
 - Metrics per threshold: **Brier score and Brier Skill Score vs persistence and climatology**, reliability diagrams, PR-AUC (better than ROC-AUC for rare events), and TSS/HSS at a decision threshold.
 - **Storm-period evaluation:** test windows of ±2 days around each event with Kp≥7, scored separately. Also do an event-based check: did P(Kp≥6) rise before onset? Use bootstrap confidence intervals, because there are only a handful of Kp≥7 events and they will be wide. Say so.
 - **NOAA comparison:** NOAA's forecasts are 1–3 days ahead and yours are 1–6 h ahead, so a direct comparison is apples to oranges. Timebox the search for archived NOAA 3-day forecasts to 2 h on Day 3. If you find them, compare them with day-scale persistence. If not, cut it and say why.
@@ -126,6 +144,7 @@ aurora-forecast/
 │   ├── config.py
 │   ├── data/                  # omni.py, gfz.py, noaa_live.py, open_meteo.py
 │   ├── features.py            # SINGLE source of truth for features
+│   ├── dataset.py             # targets, Kp classes, time split + embargo
 │   ├── model.py               # load, predict, tail sums, temperature scaling
 │   ├── baselines.py
 │   ├── metrics.py             # Brier/BSS, reliability, TSS, bootstrap CIs
