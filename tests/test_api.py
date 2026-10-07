@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from app.main import create_app
 from app.services import ForecastService
 from aurora import config
+from aurora.briefing import Briefer, BriefingCache
 from aurora.model import load_models
 from aurora.outlook import NoaaCalibration
 from tests.conftest import FIXTURE_NOW, fixture_transport
@@ -19,14 +20,19 @@ def models():
     return load_models()
 
 
-def make_client(models, fail=frozenset()) -> TestClient:
+def make_client(models, fail=frozenset(), tmp_path=None) -> TestClient:
     service = ForecastService(
         client=httpx.Client(transport=fixture_transport(fail)),
         models=models,
         noaa_calibration=NoaaCalibration.load(),
         clock=lambda: FIXTURE_NOW,
     )
-    return TestClient(create_app(service))
+    # Template-only briefer: tests never call the real LLM, even if .env has a key.
+    briefer = Briefer(
+        cache=BriefingCache(tmp_path / "b.sqlite") if tmp_path else None,
+        client_factory=lambda: None,
+    )
+    return TestClient(create_app(service, briefer))
 
 
 def test_health(models):
@@ -87,3 +93,40 @@ def test_cloud_outage_keeps_chance_if_clear(models):
 @pytest.mark.parametrize("params", [{"lat": 95, "lon": 0}, {"lat": 50}, {"lat": "x", "lon": 0}])
 def test_bad_coordinates(models, params):
     assert make_client(models).get("/api/forecast", params=params).status_code == 422
+
+
+def test_briefing_endpoint(models, tmp_path):
+    r = make_client(models, tmp_path=tmp_path).get(
+        "/api/briefing", params={**MUNICH, "tz": "Europe/Berlin", "place": "Munich"}
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["source"] == "template"
+    assert body["tz"] == "Europe/Berlin"
+    assert "Tonight" in body["text"]
+
+
+def test_briefing_unknown_tz_uses_utc(models, tmp_path):
+    r = make_client(models, tmp_path=tmp_path).get(
+        "/api/briefing", params={**MUNICH, "tz": "Mars/Olympus"}
+    )
+    assert r.json()["tz"] == "UTC"
+
+
+def test_dashboard_is_served(models):
+    client = make_client(models)
+    r = client.get("/")
+    assert r.status_code == 200
+    assert "Aurora Forecast" in r.text
+    for asset in ("/js/app.js", "/css/app.css", "/img/favicon.svg"):
+        assert client.get(asset).status_code == 200
+
+
+def test_view_lines(models):
+    body = make_client(models).get("/api/view-lines").json()
+    lines = {line["id"]: line for line in body["lines"]}
+    assert set(lines) == {"now", "forecast"}
+    # A 10% forecast line is at least as active as now, so it lies further south.
+    assert lines["forecast"]["kp"] >= lines["now"]["kp"] - 1
+    at_10e = {lon: lat for lat, lon in lines["now"]["points"]}
+    assert 55 < at_10e[10.0] < 75  # quiet conditions: Scandinavia

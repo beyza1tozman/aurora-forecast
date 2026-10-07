@@ -61,3 +61,33 @@ def test_exceedance_curve_vectorised_over_rows():
     probs = np.vstack([CLASS_PROBS, [[0.2, 0.2, 0.2, 0.2, 0.2]]])
     p = prob_kp_at_least(probs, [5.5, 5.5])
     assert p.shape == (2,) and p[1] > p[0]
+
+
+def test_view_line_passes_through_known_city():
+    from aurora.physics.geomag import geomagnetic_latitude
+    from aurora.physics.oval import kp_needed, view_line
+
+    # The line for Hamburg's own Kp_needed must cross Hamburg's meridian at Hamburg.
+    lat, lon = 53.55, 9.99
+    k = float(kp_needed(geomagnetic_latitude(lat, lon)))
+    ((line_lat, _),) = view_line(k, lons=[lon])
+    assert abs(line_lat - lat) < 0.05
+
+
+def test_view_line_moves_south_with_kp():
+    from aurora.physics.oval import view_line
+
+    quiet = dict((lon, lat) for lat, lon in view_line(2, lons=[0, 10, 20]))
+    storm = dict((lon, lat) for lat, lon in view_line(8, lons=[0, 10, 20]))
+    assert all(storm[lon] < quiet[lon] for lon in quiet)
+
+
+def test_kp_at_probability_is_monotonic():
+    import numpy as np
+
+    from aurora.physics.oval import kp_at_probability, prob_kp_at_least
+
+    probs = np.array([[0.6, 0.2, 0.1, 0.07, 0.03]])
+    k10, k50 = kp_at_probability(probs, 0.10), kp_at_probability(probs, 0.50)
+    assert k50 <= k10
+    assert prob_kp_at_least(probs, k10)[0] >= 0.10

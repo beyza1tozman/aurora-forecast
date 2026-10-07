@@ -35,7 +35,7 @@ Clear and professional, like a modern space-data dashboard. **Not** cute or cozy
 - Dark theme (near-black navy background, slightly lighter panels, thin borders).
 - Aurora green/teal accents for probabilities and key metrics; amber/red only for storm levels.
 - Clean sans-serif typography (Inter / IBM Plex Sans), monospace with tabular figures for numbers.
-- Dark map tiles (CARTO Dark Matter) with Leaflet.
+- Dark map tiles (Esri Dark Gray Canvas, tinted navy; CARTO now needs a key) with Leaflet.
 - Confidence shown visually: solid and exact for hours, softer with ranges for nights, dashed
   and text-only for weeks.
 - `design-references/` is local inspiration only and is gitignored.

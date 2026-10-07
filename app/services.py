@@ -34,7 +34,7 @@ from aurora.outlook import (
     probability_range,
     weeks_hint,
 )
-from aurora.physics.oval import prob_kp_at_least
+from aurora.physics.oval import kp_at_probability, prob_kp_at_least, view_line
 
 log = logging.getLogger(__name__)
 
@@ -44,6 +44,7 @@ CLOUD_GRID = 0.1  # degrees
 HOURS_AHEAD = 6
 NIGHTS_LOOKAHEAD = pd.Timedelta("84h")
 HORIZON_CONFIDENCE = {1: "high", 3: "medium", 6: "medium"}
+VIEW_LINE_P = 0.10  # forecast line: Kp reached with at least this probability
 
 
 def utc_now() -> pd.Timestamp:
@@ -143,6 +144,36 @@ class ForecastService:
     def clouds(self, lat: float, lon: float) -> pd.DataFrame:
         key = (round(lat / CLOUD_GRID), round(lon / CLOUD_GRID))
         return self._clouds.get(key, lambda: fetch_clouds(self.client, lat, lon))
+
+    # --- map lines ------------------------------------------------------------
+
+    def view_lines(self) -> dict:
+        """Lines on the map north of which the aurora may be seen: at the last observed
+        Kp, and at the Kp the model reaches with VIEW_LINE_P within its horizons."""
+        g = self.global_inputs()
+        lines = []
+        kp_now = None
+        if g.kp_forecast is not None:
+            kp_now = g.kp_forecast.kp_last
+        elif g.kp_history is not None and not g.kp_history.dropna().empty:
+            kp_now = float(g.kp_history.dropna().iloc[-1])
+        if kp_now is not None:
+            lines.append({"id": "now", "kp": kp_now, "points": view_line(kp_now)})
+        if g.kp_forecast is not None:
+            kp_fc = max(
+                kp_at_probability(h.class_probs[None, :], VIEW_LINE_P)
+                for h in g.kp_forecast.horizons
+            )
+            lines.append(
+                {
+                    "id": "forecast",
+                    "kp": kp_fc,
+                    "probability": VIEW_LINE_P,
+                    "hours": max(h.horizon_h for h in g.kp_forecast.horizons),
+                    "points": view_line(kp_fc),
+                }
+            )
+        return _jsonable({"generated": g.fetched, "lines": lines, "errors": dict(g.errors)})
 
     # --- panels -------------------------------------------------------------
 

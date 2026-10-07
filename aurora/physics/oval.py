@@ -69,3 +69,35 @@ def prob_kp_at_least(class_probs: np.ndarray, k) -> np.ndarray:
             log_p = np.log(np.clip(row[lo : lo + 2], 1e-12, 1.0))
             out[i] = float(np.exp(log_p[0] + frac * (log_p[1] - log_p[0])))
     return out
+
+
+def kp_at_probability(class_probs: np.ndarray, p: float, step: float = 0.1) -> float:
+    """Highest Kp (on a ``step`` grid) that is reached with probability >= p."""
+    grid = np.arange(0.0, KP_MAX + step / 2, step)
+    probs = np.array([prob_kp_at_least(class_probs, k)[0] for k in grid])
+    reached = grid[probs >= p]
+    return float(reached.max()) if len(reached) else 0.0
+
+
+def view_line(kp: float, lons=None, year: float | None = None) -> list[tuple[float, float]]:
+    """Northern-hemisphere (lat, lon) points where exactly ``kp`` is needed.
+
+    North of the line the aurora may be seen at that Kp. Solved per longitude on a
+    0.05 degree latitude grid; dipole latitude rises monotonically towards the pole
+    along a meridian at these latitudes.
+    """
+    from aurora.physics.geomag import EPOCH, geomagnetic_latitude
+
+    target = OVAL_EDGE_KP0 - VIEW_OFFSET - OVAL_DEG_PER_KP * float(kp)
+    lons = np.arange(-180.0, 180.1, 2.0) if lons is None else np.asarray(lons, dtype=float)
+    lats = np.arange(0.0, 89.95, 0.05)
+    mlat = geomagnetic_latitude(lats[None, :], lons[:, None], EPOCH if year is None else year)
+    points = []
+    for lon, row in zip(lons, mlat, strict=True):
+        above = np.nonzero(row >= target)[0]
+        if len(above) == 0 or above[0] == 0:
+            continue
+        i = above[0]
+        frac = (target - row[i - 1]) / (row[i] - row[i - 1])
+        points.append((round(float(lats[i - 1] + frac * 0.05), 3), float(lon)))
+    return points

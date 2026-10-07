@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aurora Forecast</title>
+  <meta name="description" content="Chance of seeing the aurora at your location: next hours, next 3 nights and the coming weeks.">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="img/favicon.svg" alt="" width="22" height="22">
+      <span>Aurora Forecast</span>
+    </div>
+
+    <form class="search" id="search" autocomplete="off" role="search">
+      <input id="search-input" type="search" placeholder="Search a place…" aria-label="Search a place">
+      <button type="button" id="locate" class="icon-btn" title="Use my location" aria-label="Use my location">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <ul id="search-results" class="search-results" role="listbox" hidden></ul>
+    </form>
+
+    <div class="status" id="status" aria-live="polite">
+      <ul class="feeds" id="feeds"></ul>
+      <span class="updated mono" id="updated">loading…</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="map-wrap" aria-label="Map">
+      <div id="map"></div>
+      <ul class="map-legend" id="map-legend" hidden></ul>
+      <div class="map-chip" id="map-chip" hidden>
+        <div class="chip-place" id="chip-place"></div>
+        <dl class="chip-facts">
+          <div><dt>Geomag. lat.</dt><dd class="mono" id="chip-mlat"></dd></div>
+          <div><dt>Kp needed</dt><dd class="mono" id="chip-kp"></dd></div>
+        </dl>
+        <p class="chip-hint">Click the map to choose another location.</p>
+      </div>
+    </section>
+
+    <section class="panels" aria-label="Forecast">
+      <article class="card briefing" id="briefing">
+        <header class="card-head">
+          <h2>Briefing</h2>
+          <span class="tag" id="briefing-tag"></span>
+        </header>
+        <p class="briefing-text" id="briefing-text"><span class="skeleton"></span><span class="skeleton short"></span></p>
+      </article>
+
+      <article class="card tier-hours" id="now">
+        <header class="card-head">
+          <h2>Next 6 hours</h2>
+          <span class="tag tag-conf">High → medium confidence</span>
+        </header>
+        <div class="card-body" id="now-body"><div class="skeleton block"></div></div>
+        <footer class="card-foot" id="now-foot"></footer>
+      </article>
+
+      <article class="card tier-nights" id="nights">
+        <header class="card-head">
+          <h2>Next 3 nights</h2>
+          <span class="tag tag-conf">Medium → low confidence</span>
+        </header>
+        <div class="card-body" id="nights-body"><div class="skeleton block"></div></div>
+        <footer class="card-foot" id="nights-foot"></footer>
+      </article>
+
+      <article class="card tier-weeks" id="weeks">
+        <header class="card-head">
+          <h2>Coming weeks</h2>
+          <span class="tag tag-low">Low confidence · hint only</span>
+        </header>
+        <div class="card-body" id="weeks-body"><div class="skeleton block"></div></div>
+        <footer class="card-foot" id="weeks-foot"></footer>
+      </article>
+
+      <footer class="about">
+        <p><strong>Chance</strong> combines a calibrated probability of the needed geomagnetic activity
+          (Kp) with cloud cover, darkness and the moon. Only the Kp part is calibrated; the
+          combination is a score, not a probability.</p>
+        <p>Data: NOAA SWPC (real-time solar wind, 3-day and 27-day forecasts), GFZ Potsdam (Kp),
+          Open-Meteo (clouds). Next-hours model: LightGBM trained on NASA OMNI2 1998–2014.</p>
+      </footer>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>

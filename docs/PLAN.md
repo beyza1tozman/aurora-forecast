@@ -125,7 +125,7 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
 - **HF Spaces free CPU is ephemeral.** SQLite is wiped on restart, and spaces sleep when inactive. So the **monitoring log must live outside the container**. Recommended: a free Postgres (Neon or Supabase) through `DATABASE_URL`, with SQLite locally. The alternative is appending to a HF Dataset repo.
 - UptimeRobot pings `/health` every 5 min. This gives uptime monitoring and should also keep the Space awake (check this on Day 6).
 - **Scheduler:** APScheduler in-process. Every 15 min: fetch NOAA, run the forecast, and log it. Every hour: fetch the observed Kp (GFZ nowcast JSON API) and join it to past forecasts.
-- **Frontend:** plain HTML/CSS/JS plus **Leaflet**, served by FastAPI as static files. There is no Node build step, so Docker stays simple. Use the dark map tiles **CARTO Dark Matter**, which need no API key. Credit OpenStreetMap and CARTO on the map, and check CARTO's usage terms before relying on them.
+- **Frontend:** plain HTML/CSS/JS plus **Leaflet**, served by FastAPI as static files. There is no Node build step, so Docker stays simple. Dark map tiles: **Esri Dark Gray Canvas** (CARTO Dark Matter needs an API key since 2026, see Day 5). Credit Esri and OpenStreetMap on the map.
 - **Live NOAA endpoints (checked on Day 1, 2026-10-03):**
   - The old `products/solar-wind/plasma-*.json` and `mag-*.json` feeds are **gone (404)**. Real-time solar wind is now at `json/rtsw/rtsw_mag_1m.json` and `rtsw_wind_1m.json`: the last ~24 h at 1-min cadence.
   - Each rtsw file mixes several spacecraft (SOLAR1 = SWFO-L1, ACE, IMAP). Use only rows with `active == true`, which is NOAA's operational choice and gives automatic failover.
@@ -218,7 +218,7 @@ aurora-forecast/
 - **Nights:** NOAA's deterministic Kp is turned into class probabilities by `models/noaa_calibration.json` (lead day × forecast class → observed class counts from the archive, smoothed towards the same class pooled over lead days). The range is a Beta interval from the cell's sample size. For hours the model reaches (tonight), the model is used instead. Found live on 2026-10-04 during a Kp 5 storm: NOAA said 6% for tonight in Hamburg, the model 50%.
 - **Failure isolation:** each feed failing only blanks its own panel; `errors` in the response names the source.
 
-**Day 5: Frontend and briefing**
+**Day 5: Frontend and briefing** — **done**
 - Leaflet map on CARTO Dark Matter tiles, click to choose a location, three panels (Now and hours / 3 nights / Weeks).
 - **Dashboard design system** in CSS variables:
   - near-black navy background (`#0b1020`-ish) with slightly lighter panels and thin borders;
@@ -232,6 +232,31 @@ aurora-forecast/
 - Charts: lightweight library (e.g. Chart.js via CDN) styled with the same theme.
 - Use `design-references/` for inspiration only. They are not committed.
 - LLM briefing with caching and the template fallback.
+
+*Day 5 decisions* (code: `app/static/`, `aurora/briefing.py`, `app/main.py`):
+- **Map tiles:** CARTO Dark Matter now returns "API KEY REQUIRED" tiles. Replaced with Esri Dark Gray Canvas
+  (base + label layers, no key, attribution shown), tinted towards the navy theme with a CSS filter.
+- **No Chart.js:** the hourly chart is six CSS bars inside a small table (chance solid, chance-if-clear
+  outlined, shared 2/5/10/20/50/100% scale), nights use range bars. No charting library to load.
+- **Frontend:** plain ES module, no build. Location from the map, Open-Meteo geocoding search or browser
+  geolocation, kept in the URL (`?lat&lon&name`) so views are shareable. Times shown in the browser's time zone.
+  Auto-refresh every 10 min. Each panel shows its own "unavailable" state from `errors`.
+- **Briefing (`/api/briefing?lat&lon&tz&place`):** separate endpoint so the panels never wait for the LLM.
+  Facts are pre-formatted strings in the viewer's time zone (same `<1%` rounding as the frontend);
+  Haiku 4.5 is told to copy them, and any reply with a number not in the facts is rejected → template.
+- **Cache:** SQLite, key = (0.1° cell, time zone, local date, forecast issue time, place), TTL 3 h.
+  0.1° (not 0.5°) matches the cloud cache, so briefing numbers match the panels. The same table counts
+  LLM calls per UTC day for `BRIEFING_DAILY_LIMIT`. Only LLM replies are cached.
+- **No prompt caching:** the system prompt is far below Haiku 4.5's minimum cacheable prefix, so
+  `cache_control` would silently do nothing. The SQLite cache is what saves calls.
+- **Template:** plain Python f-strings, not Jinja (one less dependency).
+- **Briefing cost:** the user does not want to spend money, so the deployed app runs on the free template.
+  The Claude code path is opt-in (`ANTHROPIC_API_KEY`); a free LLM provider may replace it later.
+- **Design pass (frontend-design plugin):** one bold element on the map: the **view line**, north of
+  which the aurora may be seen at the last observed Kp (solid, glowing), plus a dashed line for the Kp the
+  model reaches with ≥10% within its horizons (`/api/view-lines`, `aurora.physics.oval.view_line`). The
+  lines run diagonally across Europe because the dipole pole is tilted towards Canada. In the hours panel,
+  the four stat tiles were replaced by a Kp 0–9 scale showing now, the 10% reach and the Kp needed here.
 
 **Day 6: Deployment and ops**
 - Dockerfile, run locally, deploy to the HF Space, and set up the external Postgres.
