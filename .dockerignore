@@ -1,0 +1,19 @@
+# Keep the image small: only what the server needs.
+.git
+.github
+.venv
+venv
+data
+design-references
+notebooks
+reports
+scripts
+tests
+docs
+**/__pycache__
+**/*.pyc
+*.egg-info
+.env
+.env.*
+.pytest_cache
+.ruff_cache

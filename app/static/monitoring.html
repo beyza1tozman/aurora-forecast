@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Forecast Monitoring · Aurora Forecast</title>
+  <meta name="description" content="Live verification of the Kp forecasts against the observed Kp.">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./">
+      <img src="img/favicon.svg" alt="" width="22" height="22">
+      <span>Aurora Forecast</span>
+    </a>
+    <nav class="nav">
+      <a href="./">Forecast</a>
+      <a href="monitoring" aria-current="page">Monitoring</a>
+    </nav>
+    <div class="status"><span class="updated mono" id="updated">loading…</span></div>
+  </header>
+
+  <main class="mon">
+    <section class="mon-intro">
+      <h1>How the live forecasts are doing</h1>
+      <p>Every forecast the model issues is logged. Once the Kp for its 3-hour interval has been
+        observed, it is scored the same way as in the offline evaluation: Brier score, and skill
+        against persistence (Kp stays as it is) and climatology (the long-term base rate).</p>
+      <dl class="facts" id="facts"></dl>
+      <p class="note" id="db-note" hidden></p>
+    </section>
+
+    <article class="card">
+      <header class="card-head">
+        <h2>Skill so far</h2>
+        <span class="tag" id="verified-tag"></span>
+      </header>
+      <div id="scores"><div class="skeleton block"></div></div>
+      <footer class="card-foot">Skill above 0 means better than the reference. With few storms the
+        Kp ≥ 5 scores are noisy. Observed Kp is the GFZ nowcast, not yet the definitive value,
+        so all scores are provisional.</footer>
+    </article>
+
+    <div class="mon-grid">
+      <article class="card">
+        <header class="card-head"><h2>Observed Kp, last 7 days</h2></header>
+        <div class="chart" id="chart-observed"></div>
+      </article>
+
+      <article class="card">
+        <header class="card-head"><h2>3-hour forecast vs outcome</h2></header>
+        <div class="chart" id="chart-forecast"></div>
+        <div class="legend">
+          <span><i class="key line"></i>Forecast P(Kp ≥ 4)</span>
+          <span><i class="key dot"></i>Kp ≥ 4 was observed</span>
+        </div>
+      </article>
+    </div>
+
+    <article class="card">
+      <header class="card-head"><h2>Daily Brier score, Kp ≥ 4</h2><span class="tag">Lower is better</span></header>
+      <div class="chart" id="chart-brier"></div>
+      <div class="legend" id="brier-legend"></div>
+    </article>
+
+    <footer class="about" id="jobs"></footer>
+  </main>
+
+  <script src="js/monitoring.js" type="module"></script>
+</body>
+</html>

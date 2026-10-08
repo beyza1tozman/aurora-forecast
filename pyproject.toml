@@ -20,6 +20,10 @@ dependencies = [
     "uvicorn>=0.30",
     "anthropic>=1.0",
     "python-dotenv>=1.0",
+    "sqlalchemy>=2.0",
+    "apscheduler>=3.10,<4",
+    "psycopg[binary]>=3.2",
+    "sentry-sdk>=2.0",
 ]
 
 [project.optional-dependencies]

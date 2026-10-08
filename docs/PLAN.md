@@ -258,10 +258,33 @@ aurora-forecast/
   lines run diagonally across Europe because the dipole pole is tilted towards Canada. In the hours panel,
   the four stat tiles were replaced by a Kp 0–9 scale showing now, the 10% reach and the Kp needed here.
 
-**Day 6: Deployment and ops**
+**Day 6: Deployment and ops** — **code done, accounts and first deploy pending**
 - Dockerfile, run locally, deploy to the HF Space, and set up the external Postgres.
 - DB models (SQLAlchemy: forecasts, observations, briefings), scheduler, forecast logging and observed-Kp verification job. `/monitoring` page in the same dashboard style: Brier score over time, a forecast-vs-observed plot, and the number of verified forecasts.
 - Sentry, UptimeRobot, and CI deploying to HF on push to `main`.
+
+*Day 6 decisions* (code: `app/db.py`, `app/scheduler.py`, `aurora/monitoring.py`, `Dockerfile`, `.github/workflows/ci.yml`):
+- **Everything on free tiers:** HF Spaces free CPU, free Postgres (Neon or Supabase), Sentry free plan
+  (errors only, no tracing), UptimeRobot free. No Docker Desktop needed locally: CI builds and
+  smoke-tests the image, HF builds it again on deploy.
+- **DB:** SQLAlchemy Core, two tables. `forecasts` keeps the class probabilities *and* `kp_last` per
+  (issue time, horizon), so the model and persistence are scored on the same rows. `observations` is
+  overwritten every hour, because GFZ nowcast values can still change. SQLite locally, `DATABASE_URL`
+  (normalised to the psycopg 3 driver) in production. Briefings stay in the SQLite cache (losing them on
+  restart is harmless).
+- **Scheduler:** APScheduler in-process, single uvicorn worker. Forecast logging every 15 min (one issue
+  per hour, repeats skipped), observed Kp every hour (the ~30 days already fetched, so the chart fills
+  right after a fresh deploy). Job status is shown on /monitoring. `SCHEDULER=0` turns it off.
+- **Monitoring scores:** Kp ≥ 4 and ≥ 5 per horizon: Brier, skill vs persistence and vs climatology
+  (training base rate), same definitions as the offline evaluation. Kp ≥ 4 because Kp ≥ 5 is too rare to
+  score in the first weeks. Observed Kp is the nowcast, so scores are labelled provisional.
+- **Charts:** inline SVG (no library). Horizons use an ordinal teal ramp validated for dark mode
+  (`#2ee6a6`, `#16a889`, `#2b6f74`), brightest for 1 h: colour fades with lead time like confidence.
+- **Sentry check:** `/api/sentry-test?key=…` raises a deliberate error. It returns 404 unless
+  `SENTRY_TEST_KEY` is set and matches, so strangers can't burn the free error quota.
+- **Deploy:** the CI job uploads only the server files with `huggingface_hub.upload_folder` (HF rejects
+  binary files such as the report PNGs pushed through plain git). Needs secret `HF_TOKEN` and variable
+  `HF_SPACE`; skipped without them. `README.md` carries the Space header (Docker SDK, port 7860).
 
 **Day 7: Buffer and polish**
 - Fix whatever broke. README with a GIF, an architecture diagram, the results table and a **Limitations** section.

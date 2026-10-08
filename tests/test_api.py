@@ -130,3 +130,17 @@ def test_view_lines(models):
     assert lines["forecast"]["kp"] >= lines["now"]["kp"] - 1
     at_10e = {lon: lat for lat, lon in lines["now"]["points"]}
     assert 55 < at_10e[10.0] < 75  # quiet conditions: Scandinavia
+
+
+def test_sentry_test_route_hidden_without_key(models, monkeypatch):
+    client = make_client(models)
+    monkeypatch.delenv("SENTRY_TEST_KEY", raising=False)
+    assert client.get("/api/sentry-test", params={"key": ""}).status_code == 404
+    monkeypatch.setenv("SENTRY_TEST_KEY", "s3cret")
+    assert client.get("/api/sentry-test", params={"key": "wrong"}).status_code == 404
+
+
+def test_sentry_test_route_raises_with_key(models, monkeypatch):
+    monkeypatch.setenv("SENTRY_TEST_KEY", "s3cret")
+    client = TestClient(make_client(models).app, raise_server_exceptions=False)
+    assert client.get("/api/sentry-test", params={"key": "s3cret"}).status_code == 500
