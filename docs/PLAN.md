@@ -1,7 +1,7 @@
 # Aurora Forecast: 7-Day Plan
 
 ## Context
-Portfolio project for ML/space-industry Werkstudent applications. A user picks a location in Germany or Europe and sees the aurora chance (1) now and for the next few hours, (2) for the next 3 nights, and (3) as a low-confidence hint for the next weeks. Confidence must visibly fall as the horizon gets longer. The ML core forecasts Kp from L1 solar wind data. The production side is FastAPI, a map, Docker, HF Spaces, CI, Sentry, /health and /monitoring. You have 7 days and a Windows laptop with CPU only.
+Portfolio project for ML/space-industry Werkstudent applications. A user picks a location in Germany or Europe and sees the aurora chance (1) now and for the next few hours, (2) for the next 3 nights, and (3) as a low-confidence hint for the next weeks. Confidence must visibly fall as the horizon gets longer. The ML core forecasts Kp from L1 solar wind data. The production side is FastAPI, a map, Docker, Render, CI, Sentry, /health and /monitoring. You have 7 days and a Windows laptop with CPU only.
 
 **Design direction:** clear and professional, like a modern space-data dashboard. Dark theme, aurora green/teal accents, clean typography and a dark map style. (This replaces the earlier "cozy / Ghibli" idea.)
 
@@ -122,7 +122,7 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
 
 ## 5. Production notes and traps
 
-- **HF Spaces free CPU is ephemeral.** SQLite is wiped on restart, and spaces sleep when inactive. So the **monitoring log must live outside the container**. Recommended: a free Postgres (Neon or Supabase) through `DATABASE_URL`, with SQLite locally. The alternative is appending to a HF Dataset repo.
+- **The free host is ephemeral.** SQLite is wiped on restart and deploy, and free services sleep when inactive. So the **monitoring log must live outside the container**. Recommended: a free Postgres (Neon or Supabase) through `DATABASE_URL`, with SQLite locally.
 - UptimeRobot pings `/health` every 5 min. This gives uptime monitoring and should also keep the Space awake (check this on Day 6).
 - **Scheduler:** APScheduler in-process. Every 15 min: fetch NOAA, run the forecast, and log it. Every hour: fetch the observed Kp (GFZ nowcast JSON API) and join it to past forecasts.
 - **Frontend:** plain HTML/CSS/JS plus **Leaflet**, served by FastAPI as static files. There is no Node build step, so Docker stays simple. Dark map tiles: **Esri Dark Gray Canvas** (CARTO Dark Matter needs an API key since 2026, see Day 5). Credit Esri and OpenStreetMap on the map.
@@ -145,7 +145,7 @@ aurora-forecast/
 ├── docs/PLAN.md               # this plan
 ├── pyproject.toml             # deps + ruff + pytest config
 ├── Dockerfile
-├── .github/workflows/ci.yml   # lint + tests (+ deploy to HF on main)
+├── .github/workflows/ci.yml   # lint + tests + Docker build and smoke test
 ├── .env.example               # ANTHROPIC_API_KEY, SENTRY_DSN, DATABASE_URL
 ├── design-references/         # local only, gitignored
 ├── data/                      # gitignored: raw/ + processed/ parquet
@@ -259,14 +259,14 @@ aurora-forecast/
   the four stat tiles were replaced by a Kp 0–9 scale showing now, the 10% reach and the Kp needed here.
 
 **Day 6: Deployment and ops** — **code done, accounts and first deploy pending**
-- Dockerfile, run locally, deploy to the HF Space, and set up the external Postgres.
+- Dockerfile, run locally, deploy to Render, and set up the external Postgres.
 - DB models (SQLAlchemy: forecasts, observations, briefings), scheduler, forecast logging and observed-Kp verification job. `/monitoring` page in the same dashboard style: Brier score over time, a forecast-vs-observed plot, and the number of verified forecasts.
-- Sentry, UptimeRobot, and CI deploying to HF on push to `main`.
+- Sentry, UptimeRobot, and Render deploying on push to `main` after CI passes.
 
 *Day 6 decisions* (code: `app/db.py`, `app/scheduler.py`, `aurora/monitoring.py`, `Dockerfile`, `.github/workflows/ci.yml`):
-- **Everything on free tiers:** HF Spaces free CPU, free Postgres (Neon or Supabase), Sentry free plan
+- **Everything on free tiers:** Render free web service, free Postgres (Neon or Supabase), Sentry free plan
   (errors only, no tracing), UptimeRobot free. No Docker Desktop needed locally: CI builds and
-  smoke-tests the image, HF builds it again on deploy.
+  smoke-tests the image, Render builds it again on deploy.
 - **DB:** SQLAlchemy Core, two tables. `forecasts` keeps the class probabilities *and* `kp_last` per
   (issue time, horizon), so the model and persistence are scored on the same rows. `observations` is
   overwritten every hour, because GFZ nowcast values can still change. SQLite locally, `DATABASE_URL`
@@ -282,9 +282,12 @@ aurora-forecast/
   (`#2ee6a6`, `#16a889`, `#2b6f74`), brightest for 1 h: colour fades with lead time like confidence.
 - **Sentry check:** `/api/sentry-test?key=…` raises a deliberate error. It returns 404 unless
   `SENTRY_TEST_KEY` is set and matches, so strangers can't burn the free error quota.
-- **Deploy:** the CI job uploads only the server files with `huggingface_hub.upload_folder` (HF rejects
-  binary files such as the report PNGs pushed through plain git). Needs secret `HF_TOKEN` and variable
-  `HF_SPACE`; skipped without them. `README.md` carries the Space header (Docker SDK, port 7860).
+- **Host: Render, not Hugging Face Spaces.** Since mid-2026, new Docker Spaces need HF's paid PRO plan,
+  so the plan switched on 2026-10-08. Render's free web service builds the same `Dockerfile` from GitHub
+  and auto-deploys `main` once CI passes (no deploy job or token in CI). Limits: 512 MB RAM (the app
+  peaks around 235 MB), 0.1 CPU, sleeps after 15 min idle (UptimeRobot's 5-min ping keeps it awake),
+  750 free hours/month (enough for one service). Uvicorn listens on `$PORT` (Render sets it; 7860 in CI).
+  Render's free Postgres is deleted after 30 days, so the DB stays on Neon.
 
 **Day 7: Buffer and polish**
 - Fix whatever broke. README with a GIF, an architecture diagram, the results table and a **Limitations** section.

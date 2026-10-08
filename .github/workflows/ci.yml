@@ -22,7 +22,8 @@ jobs:
         run: pytest -m "not network"
 
   docker:
-    # The image Hugging Face builds; checked here because it is not built locally.
+    # The image Render deploys; checked here because it is not built locally.
+    # Render auto-deploys main only after these checks pass.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,44 +36,3 @@ jobs:
           docker logs app
           exit 1
 
-  deploy:
-    # Uploads the server files to the Hugging Face Space, which rebuilds the image.
-    # Needs the repository secret HF_TOKEN (write token) and variable HF_SPACE
-    # ("user/space-name"); without them the job is skipped.
-    needs: [test, docker]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    env:
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_SPACE: ${{ vars.HF_SPACE }}
-    steps:
-      - uses: actions/checkout@v4
-        if: env.HF_TOKEN != '' && env.HF_SPACE != ''
-      - uses: actions/setup-python@v5
-        if: env.HF_TOKEN != '' && env.HF_SPACE != ''
-        with:
-          python-version: "3.12"
-      - name: Upload to Space
-        if: env.HF_TOKEN != '' && env.HF_SPACE != ''
-        run: |
-          pip install --quiet huggingface_hub
-          python - <<'EOF'
-          import os
-          from huggingface_hub import HfApi
-
-          HfApi(token=os.environ["HF_TOKEN"]).upload_folder(
-              folder_path=".",
-              repo_id=os.environ["HF_SPACE"],
-              repo_type="space",
-              allow_patterns=[
-                  "Dockerfile", ".dockerignore", "README.md", "pyproject.toml",
-                  "CLAUDE.md", "MODEL_CARD.md", "aurora/**", "app/**", "models/**",
-              ],
-              ignore_patterns=["**/__pycache__/**", "**/*.pyc"],
-              delete_patterns=["aurora/**", "app/**", "models/**"],
-              commit_message=f"Deploy {os.environ['GITHUB_SHA'][:7]}",
-          )
-          EOF
-      - name: Skipped
-        if: env.HF_TOKEN == '' || env.HF_SPACE == ''
-        run: echo "HF_TOKEN or HF_SPACE not set; skipping deploy."

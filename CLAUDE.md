@@ -19,7 +19,7 @@ when decisions change.
 - **Location score:** forecast Kp × geomagnetic latitude × cloud cover (Open-Meteo) ×
   darkness × moon.
 - **Briefing:** LLM-generated daily text (Claude Haiku 4.5), cached, with a template fallback.
-- **Production:** FastAPI, Leaflet frontend, Docker, Hugging Face Spaces, pytest, GitHub
+- **Production:** FastAPI, Leaflet frontend, Docker, Render (free web service), pytest, GitHub
   Actions CI, Sentry, `/health` for UptimeRobot, `/monitoring` comparing logged forecasts to observed Kp.
 
 ## Rules that matter
@@ -27,7 +27,7 @@ when decisions change.
   serving. Live L1 data must be time-shifted to match OMNI (bow-shock shifted).
 - Never use a random train/test split; features at time t may only use data ≤ t.
 - Exceedance probabilities must be monotonic: P(Kp≥7) ≤ P(Kp≥6) ≤ P(Kp≥5).
-- The monitoring log lives in an external DB (`DATABASE_URL`), because HF Spaces storage is ephemeral.
+- The monitoring log lives in an external DB (`DATABASE_URL`), because the Render free disk is ephemeral.
 - Secrets go in `.env` (gitignored); keep `.env.example` in sync.
 
 ## Design direction

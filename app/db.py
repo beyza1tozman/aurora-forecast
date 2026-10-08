@@ -1,6 +1,6 @@
 """Forecast log and observed Kp, for /monitoring.
 
-HF Spaces storage is wiped on restart, so production points DATABASE_URL at an
+The host's disk is wiped on every deploy and restart, so production points DATABASE_URL at an
 external Postgres (free tier). Locally and in tests it defaults to SQLite.
 
 Tables

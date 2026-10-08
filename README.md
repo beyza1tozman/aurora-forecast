@@ -1,14 +1,3 @@
----
-title: Aurora Forecast
-emoji: 🌌
-colorFrom: indigo
-colorTo: green
-sdk: docker
-app_port: 7860
-pinned: false
-short_description: Chance of seeing the aurora in Europe, now to weeks ahead
----
-
 # Aurora Forecast
 
 Chance of seeing the aurora at a chosen place in Germany and Europe: the next hours, the
