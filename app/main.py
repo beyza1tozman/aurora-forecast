@@ -78,7 +78,8 @@ def create_app(
 
     app = FastAPI(title="Aurora Forecast", version="0.1.0", lifespan=lifespan)
 
-    @app.get("/health")
+    # HEAD too: UptimeRobot's free plan checks with HEAD requests.
+    @app.api_route("/health", methods=["GET", "HEAD"])
     def health() -> dict:
         try:
             svc = get_service()

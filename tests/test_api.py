@@ -41,6 +41,11 @@ def test_health(models):
     assert r.json()["models"] == [1, 3, 6]
 
 
+def test_health_answers_head(models):
+    # UptimeRobot's free plan checks with HEAD; without it the static mount returns 404.
+    assert make_client(models).head("/health").status_code == 200
+
+
 def test_forecast_shape(models):
     r = make_client(models).get("/api/forecast", params=MUNICH)
     assert r.status_code == 200
