@@ -6,9 +6,7 @@ Chance of seeing the aurora at a chosen place in Germany and Europe: the next ho
 next 3 nights, and a low-confidence hint for the coming weeks. Each horizon uses the source
 that actually has skill at that range, and the confidence shown falls with the horizon.
 
-<!-- Demo GIF: record the live site and save it as docs/img/demo.gif, then uncomment:
 ![Dashboard: map with the aurora view line, next hours, next 3 nights](docs/img/demo.gif)
--->
 
 ## What it does
 
