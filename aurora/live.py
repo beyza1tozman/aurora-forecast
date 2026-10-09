@@ -9,7 +9,9 @@ the future. That is the real warning time L1 gives.
 
 The row must also have its ``kp_last`` interval (the last one completed at issue
 time) already observed. If the newest row's interval is still in progress, an
-earlier row is used. Rows older than MAX_STALENESS are not used at all.
+earlier row is used. Rows older than MAX_STALENESS are not used at all. As a result,
+issue times on Kp boundaries (00, 03, ... UTC) are never served: their row waits for
+its kp_last, and by then a newer row is available.
 """
 
 from dataclasses import dataclass

@@ -275,6 +275,11 @@ aurora-forecast/
 - **Scheduler:** APScheduler in-process, single uvicorn worker. Forecast logging every 15 min (one issue
   per hour, repeats skipped), observed Kp every hour (the ~30 days already fetched, so the chart fills
   right after a fresh deploy). Job status is shown on /monitoring. `SCHEDULER=0` turns it off.
+- **Two issues per 3 h, by design (found 2026-10-09):** issue times on Kp boundaries (00, 03, …, 21 UTC)
+  are never logged. Thanks to the L1 lead time, the newest row is issued ~1 h ahead of the wall clock, so
+  at 14:01 it would be the 15:00 issue, whose `kp_last` (12–15) is not observed yet; the 14:00 issue is
+  served instead. At 15:01 the newest row is already 16:00. The dashboard never shows a 15:00 issue, so
+  the log matches what users saw. Backfilling it was rejected: it would score forecasts nobody was shown.
 - **Monitoring scores:** Kp ≥ 4 and ≥ 5 per horizon: Brier, skill vs persistence and vs climatology
   (training base rate), same definitions as the offline evaluation. Kp ≥ 4 because Kp ≥ 5 is too rare to
   score in the first weeks. Observed Kp is the nowcast, so scores are labelled provisional.

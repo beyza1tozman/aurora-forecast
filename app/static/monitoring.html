@@ -29,7 +29,9 @@
       <h1>How the live forecasts are doing</h1>
       <p>Every forecast the model issues is logged. Once the Kp for its 3-hour interval has been
         observed, it is scored the same way as in the offline evaluation: Brier score, and skill
-        against persistence (Kp stays as it is) and climatology (the long-term base rate).</p>
+        against persistence (Kp stays as it is) and climatology (the long-term base rate).
+        A new forecast is issued about two hours in three: when a 3-hour Kp interval is still
+        running, the newest forecast has to wait for its Kp, so that hour is skipped.</p>
       <dl class="facts" id="facts"></dl>
       <p class="note" id="db-note" hidden></p>
     </section>
