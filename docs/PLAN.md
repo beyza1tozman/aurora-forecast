@@ -294,7 +294,7 @@ aurora-forecast/
   750 free hours/month (enough for one service). Uvicorn listens on `$PORT` (Render sets it; 7860 in CI).
   Render's free Postgres is deleted after 30 days, so the DB stays on Neon.
 
-**Day 7: Buffer and polish**
+**Day 7: Buffer and polish** — **done** (2026-10-09: README with demo GIF, architecture, results and limitations; cloud fallback fix; talking points kept local in `docs/talking-points.md`, gitignored)
 - Fix whatever broke. README with a GIF, an architecture diagram, the results table and a **Limitations** section.
 - Write down your interview talking points (sections 1–3 of this plan).
 
