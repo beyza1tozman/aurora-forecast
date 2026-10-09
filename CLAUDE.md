@@ -4,8 +4,7 @@ Web app that shows the chance of seeing the aurora at a chosen location in Germa
 now and the next few hours, an outlook for the next 3 nights, and a low-confidence hint for
 the coming weeks (27-day solar rotation). Confidence must visibly decrease with horizon.
 
-Portfolio project for ML / space-industry Werkstudent applications, built in one week on a
-Windows laptop, CPU only.
+An ML and space-weather project, built in one week on a Windows laptop, CPU only.
 
 **The full plan is in [docs/PLAN.md](docs/PLAN.md).** It contains the day-by-day schedule, the folder
 structure and the reasoning behind the ML and physics decisions. Read it before starting work and keep it up to date

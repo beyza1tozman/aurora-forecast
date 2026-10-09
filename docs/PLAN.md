@@ -1,7 +1,7 @@
 # Aurora Forecast: 7-Day Plan
 
 ## Context
-Portfolio project for ML/space-industry Werkstudent applications. A user picks a location in Germany or Europe and sees the aurora chance (1) now and for the next few hours, (2) for the next 3 nights, and (3) as a low-confidence hint for the next weeks. Confidence must visibly fall as the horizon gets longer. The ML core forecasts Kp from L1 solar wind data. The production side is FastAPI, a map, Docker, Render, CI, Sentry, /health and /monitoring. You have 7 days and a Windows laptop with CPU only.
+A one-week ML and space-weather project. A user picks a location in Germany or Europe and sees the aurora chance (1) now and for the next few hours, (2) for the next 3 nights, and (3) as a low-confidence hint for the next weeks. Confidence must visibly fall as the horizon gets longer. The ML core forecasts Kp from L1 solar wind data. The production side is FastAPI, a map, Docker, Render, CI, Sentry, /health and /monitoring. You have 7 days and a Windows laptop with CPU only.
 
 **Design direction:** clear and professional, like a modern space-data dashboard. Night-sky theme picked from a photo of the aurora over snow (periwinkle sky, lavender, pale mint, snow), clean typography and a dark map style. (This replaces the earlier "cozy / Ghibli" idea.)
 
@@ -11,12 +11,12 @@ Portfolio project for ML/space-industry Werkstudent applications. A user picks a
 
 ## 1. The most important decision: which horizon each part comes from
 
-This is the decision interviewers are most likely to probe, and it shapes the whole app.
+This is the key design decision, and it shapes the whole app.
 
 | Horizon | Source | Why | Confidence shown |
 |---|---|---|---|
 | Now and the next 1–6 h | **Your LightGBM model** on L1 solar wind | L1 is about 1.5 million km upstream. Solar wind at 400–800 km/s reaches Earth in about 30–60 min, so you *measure* what will hit. Past about 1 h, skill comes from the persistence of storm conditions, so skill falls quickly with lead time. | High → medium |
-| Next 3 nights | **NOAA SWPC 3-day Kp forecast**, calibrated on its own archive (your model for the hours it reaches tonight) | Days-ahead storms come from CMEs that leave the Sun 1–3 days earlier. L1 data cannot see them yet. NOAA uses coronagraphs and WSA-Enlil modelling. Being honest about this is a strength in an interview. | Medium → low |
+| Next 3 nights | **NOAA SWPC 3-day Kp forecast**, calibrated on its own archive (your model for the hours it reaches tonight) | Days-ahead storms come from CMEs that leave the Sun 1–3 days earlier. L1 data cannot see them yet. NOAA uses coronagraphs and WSA-Enlil modelling. The app says so openly instead of stretching the model. | Medium → low |
 | Next ~4 weeks | **27-day recurrence**: Kp from one and two solar rotations ago, plus NOAA's 27-day outlook | Coronal holes last several rotations, so their fast-wind streams return about every 27 days. This works best in the declining phase of the solar cycle and badly for CMEs. | Low, shown as a "possible activity" hint only |
 
 On the cloud side, Open-Meteo forecasts also get less reliable past about 48 h. That is a second reason the 3-night outlook is fuzzier.
@@ -30,7 +30,7 @@ On the cloud side, Open-Meteo forecasts also get less reliable past about 48 h. 
 - **Target:** GFZ Potsdam definitive Kp (`Kp_ap_Ap_SN_F107_since_1932.txt`). The target for horizon *h* is the Kp of the 3-hour UT bin that contains *t + h*. Train one model per horizon: h = 1, 3 and 6 h.
 - **Period:** 1998–present (ACE/DSCOVR era, good coverage).
 
-**Train/serve skew (strong interview point)**
+**Train/serve skew**
 OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa.gov/products/solar-wind/*.json`) is **at L1 and not shifted**. In production, shift live data by `delay ≈ 1.5e6 km / V_x` before you build features. Also, historical Kp is *definitive*, but live Kp is NOAA's *estimate*. Note this difference in the model card. Write the feature code once, in `aurora/features.py`, and use it for both training and serving.
 
 **Features (physics-motivated, all computed from data up to t only)**
@@ -294,9 +294,9 @@ aurora-forecast/
   750 free hours/month (enough for one service). Uvicorn listens on `$PORT` (Render sets it; 7860 in CI).
   Render's free Postgres is deleted after 30 days, so the DB stays on Neon.
 
-**Day 7: Buffer and polish** — **done** (2026-10-09: README with demo GIF, architecture, results and limitations; cloud fallback fix; talking points kept local in `docs/talking-points.md`, gitignored)
+**Day 7: Buffer and polish** — **done** (2026-10-09: README with demo GIF, architecture, results and limitations; cloud fallback fix; presentation notes kept local, gitignored)
 - Fix whatever broke. README with a GIF, an architecture diagram, the results table and a **Limitations** section.
-- Write down your interview talking points (sections 1–3 of this plan).
+- Summarise the key decisions (sections 1–3 of this plan) for presenting the project.
 
 *Day 7 fixes* (code: `aurora/data/met_norway.py`, `app/services.py`):
 - **Clouds failed on Render with HTTP 429 (found 2026-10-09).** Open-Meteo's free quota is per IP, and

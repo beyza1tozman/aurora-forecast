@@ -42,5 +42,5 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Local interview prep notes, not published
-docs/talking-points.md
+# Local notes, not published
+*.local.md
