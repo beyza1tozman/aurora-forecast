@@ -55,7 +55,8 @@ Rules:
   so (say "between X and Y" when a range is given), the weeks only a rough hint.
 - "chance" combines geomagnetic activity, clouds, darkness and the moon. "if_clear"
   is the chance ignoring clouds. "kp_needed" is the Kp index needed to see aurora
-  low on the northern horizon at this location.
+  low on the horizon at this location ("horizon" says which one). Kp only goes up
+  to 9, so "above 9" means the aurora is practically never visible here.
 - Be plain and factual, like a weather service. No hype, no exclamation marks, no
   emoji, no markdown, no greeting, no sign-off.
 """
@@ -123,7 +124,8 @@ def briefing_facts(forecast: dict, tz: ZoneInfo, place: str | None = None) -> di
         "location": place or coords_label(loc["lat"], loc["lon"]),
         "today": _day(forecast["generated"], tz),
         "local_time": _clock(forecast["generated"], tz),
-        "kp_needed": f"{loc['kp_needed']:.1f}",
+        "kp_needed": f"{loc['kp_needed']:.1f}" if loc["kp_needed"] <= 9 else "above 9",
+        "horizon": "southern" if loc.get("hemisphere") == "south" else "northern",
     }
 
     now = forecast.get("now")

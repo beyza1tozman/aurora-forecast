@@ -4,11 +4,12 @@ View line
 ---------
 The classic Kp map puts the equatorward edge of the auroral oval near
 ``66.5 - 2.04 * Kp`` degrees geomagnetic latitude (Kp 5 -> 56.3, Kp 7 -> 52.2).
-Aurora at 100-300 km altitude is also visible low on the northern horizon from
-further south, and the dipole latitude differs from corrected geomagnetic
+Aurora at 100-300 km altitude is also visible low on the poleward horizon from
+further equatorward, and the dipole latitude differs from corrected geomagnetic
 latitude, so the line is shifted equatorward by VIEW_OFFSET. The offset is
 anchored to Central European experience: northern Germany (Hamburg, mlat 53.7)
 needs about Kp 5-6, Munich (48.2) about Kp 8. This is a heuristic, not a fit.
+The southern oval mirrors the northern one, so |mlat| is used in both hemispheres.
 
 Exceedance curve
 ----------------
@@ -35,9 +36,14 @@ CLIM_EXCEEDANCE = dict(
 
 
 def kp_needed(mlat):
-    """Kp at which the aurora may be seen low on the northern horizon (0..9, or > 9 = never)."""
+    """Kp at which the aurora may be seen low on the poleward horizon (0..9, or > 9 = never).
+
+    Northern horizon in the northern hemisphere, southern in the southern (aurora australis).
+    """
     view_line_kp0 = OVAL_EDGE_KP0 - VIEW_OFFSET
-    return np.maximum((view_line_kp0 - np.asarray(mlat, dtype=float)) / OVAL_DEG_PER_KP, 0.0)
+    return np.maximum(
+        (view_line_kp0 - np.abs(np.asarray(mlat, dtype=float))) / OVAL_DEG_PER_KP, 0.0
+    )
 
 
 def exceedance_anchors(class_probs: np.ndarray) -> np.ndarray:

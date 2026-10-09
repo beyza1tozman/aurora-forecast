@@ -2,7 +2,7 @@
 
 **Live:** https://aurora-forecast-zqnk.onrender.com · [Monitoring](https://aurora-forecast-zqnk.onrender.com/monitoring)
 
-Chance of seeing the aurora at a chosen place in Germany and Europe: the next hours, the
+Chance of seeing the aurora at a chosen place, tuned for Europe: the next hours, the
 next 3 nights, and a low-confidence hint for the coming weeks. Each horizon uses the source
 that actually has skill at that range, and the confidence shown falls with the horizon.
 
@@ -103,8 +103,10 @@ Full numbers, storm-window and event-based scores and feature importance are in
 - **Few extreme events.** Kp ≥ 7 is ~0.5% of test hours, so its confidence intervals are wide and
   its calibration rests on few storms.
 - **Kp is planetary.** Local visibility also depends on substorm timing within the 3-hour
-  interval. The Kp-needed thresholds are tuned for Central Europe; the dipole approximation
-  is a few degrees off in the UK and North America.
+  interval. The Kp-needed thresholds are tuned for Central Europe. Any place in the world
+  can be searched, including the southern hemisphere (aurora australis), but the simple
+  dipole model is a few degrees off in the UK and North America, and outside Europe the app
+  says the thresholds are less accurate. The map lines cover the northern hemisphere only.
 - **Live monitoring is provisional.** It uses GFZ nowcast Kp and, after a few weeks without
   storms, says little about skill at high Kp.
 - **Free hosting.** 0.1 CPU and 512 MB RAM on Render; a cold start can take ~1 min if the
@@ -160,7 +162,6 @@ models/          trained boosters and calibration (small, committed)
 reports/         metrics and figures
 notebooks/       EDA
 tests/           pytest, with saved feed fixtures
-docs/PLAN.md     the build plan and the reasoning behind each decision
 ```
 
 ## Data credits

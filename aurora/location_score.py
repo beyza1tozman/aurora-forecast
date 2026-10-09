@@ -27,13 +27,30 @@ def decimal_year(t: pd.Timestamp) -> float:
     return t.year + (t.dayofyear - 1) / 365.25
 
 
+# Where the Kp-needed thresholds were anchored and the dipole is close to corrected
+# geomagnetic latitude. Elsewhere the score still works but is less accurate.
+TUNED_REGION = {"lat": (35.0, 72.0), "lon": (-25.0, 45.0)}  # Europe
+
+
+def in_tuned_region(lat: float, lon: float) -> bool:
+    (lat0, lat1), (lon0, lon1) = TUNED_REGION["lat"], TUNED_REGION["lon"]
+    return lat0 <= lat <= lat1 and lon0 <= lon <= lon1
+
+
 def location_info(lat: float, lon: float, when: pd.Timestamp) -> dict:
     mlat = float(geomagnetic_latitude(lat, lon, decimal_year(when)))
-    return {"lat": lat, "lon": lon, "mlat": mlat, "kp_needed": float(kp_needed(mlat))}
+    return {
+        "lat": lat,
+        "lon": lon,
+        "mlat": mlat,
+        "kp_needed": float(kp_needed(mlat)),
+        "hemisphere": "north" if mlat >= 0 else "south",
+        "tuned_region": in_tuned_region(lat, lon),
+    }
 
 
 def clear_sky_factor(low, mid, high):
-    """Chance the northern sky is clear, layers overlapping at random.
+    """Chance the sky is clear, layers overlapping at random.
 
     Low and mid cloud block the view; high cloud only partly.
     """

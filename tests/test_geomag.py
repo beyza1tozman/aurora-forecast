@@ -40,6 +40,27 @@ def test_kp_needed_anchors():
     assert kp_needed(mlat["Hamburg"]) < kp_needed(mlat["Berlin"]) < kp_needed(mlat["Munich"])
 
 
+def test_kp_needed_southern_hemisphere_mirrors_northern():
+    # Tasmania and New Zealand see the aurora australis in strong storms.
+    hobart = geomagnetic_latitude(-42.88, 147.33)
+    assert hobart < -45
+    assert kp_needed(hobart) == pytest.approx(kp_needed(-hobart))
+    assert 5.0 <= kp_needed(hobart) <= 9.0
+
+
+def test_location_info_flags_hemisphere_and_tuned_region():
+    import pandas as pd
+
+    from aurora.location_score import location_info
+
+    now = pd.Timestamp("2026-10-09", tz="UTC")
+    hamburg = location_info(53.55, 10.0, now)
+    assert hamburg["hemisphere"] == "north" and hamburg["tuned_region"]
+    hobart = location_info(-42.88, 147.33, now)
+    assert hobart["hemisphere"] == "south" and not hobart["tuned_region"]
+    assert not location_info(40.71, -74.0, now)["tuned_region"]  # New York
+
+
 CLASS_PROBS = np.array([[0.70, 0.20, 0.06, 0.03, 0.01]])
 
 

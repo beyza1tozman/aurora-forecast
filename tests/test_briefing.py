@@ -84,6 +84,14 @@ def test_facts_are_local_and_preformatted(forecast):
     assert tonight["chance"].endswith("%")
     assert "note" in facts["nights"][2]  # cloud forecast does not reach night 3
     assert facts["weeks_confidence"] == "low"
+    assert facts["horizon"] == "northern"
+
+
+def test_facts_kp_needed_above_scale(forecast):
+    far_south = {**forecast, "location": {**forecast["location"], "kp_needed": 18.2}}
+    assert briefing_facts(far_south, BERLIN)["kp_needed"] == "above 9"
+    southern = {**forecast, "location": {**forecast["location"], "hemisphere": "south"}}
+    assert briefing_facts(southern, BERLIN)["horizon"] == "southern"
 
 
 def test_number_guard(forecast):

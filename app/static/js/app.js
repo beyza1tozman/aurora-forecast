@@ -276,6 +276,11 @@ function renderChip(fc, loc) {
   $("chip-place").title = coords;
   $("chip-mlat").textContent = `${l.mlat.toFixed(1)}°`;
   $("chip-kp").textContent = l.kp_needed > 9 ? ">9" : kp(l.kp_needed);
+  const notes = [];
+  if (l.hemisphere === "south") notes.push("Southern lights: look low on the southern horizon. The map lines show the northern hemisphere only.");
+  if (!l.tuned_region) notes.push("Kp thresholds are tuned for Europe and are less accurate here.");
+  $("chip-note").textContent = notes.join(" ");
+  $("chip-note").hidden = notes.length === 0;
   $("map-chip").hidden = false;
 }
 

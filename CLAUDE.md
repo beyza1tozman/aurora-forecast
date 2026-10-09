@@ -6,7 +6,7 @@ the coming weeks (27-day solar rotation). Confidence must visibly decrease with 
 
 An ML and space-weather project, built in one week on a Windows laptop, CPU only.
 
-**The full plan is in [docs/PLAN.md](docs/PLAN.md).** It contains the day-by-day schedule, the folder
+**The full plan is in `docs/PLAN.md` (local only, gitignored).** It contains the day-by-day schedule, the folder
 structure and the reasoning behind the ML and physics decisions. Read it before starting work and keep it up to date
 when decisions change.
 
