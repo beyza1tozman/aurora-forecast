@@ -3,7 +3,7 @@
 ## Context
 Portfolio project for ML/space-industry Werkstudent applications. A user picks a location in Germany or Europe and sees the aurora chance (1) now and for the next few hours, (2) for the next 3 nights, and (3) as a low-confidence hint for the next weeks. Confidence must visibly fall as the horizon gets longer. The ML core forecasts Kp from L1 solar wind data. The production side is FastAPI, a map, Docker, Render, CI, Sentry, /health and /monitoring. You have 7 days and a Windows laptop with CPU only.
 
-**Design direction:** clear and professional, like a modern space-data dashboard. Dark theme, aurora green/teal accents, clean typography and a dark map style. (This replaces the earlier "cozy / Ghibli" idea.)
+**Design direction:** clear and professional, like a modern space-data dashboard. Night-sky theme picked from a photo of the aurora over snow (periwinkle sky, lavender, pale mint, snow), clean typography and a dark map style. (This replaces the earlier "cozy / Ghibli" idea.)
 
 **Repo state:** the local branch is `main`. `design-references/` exists locally but is gitignored, so it is not committed.
 
@@ -221,8 +221,8 @@ aurora-forecast/
 **Day 5: Frontend and briefing** — **done**
 - Leaflet map on CARTO Dark Matter tiles, click to choose a location, three panels (Now and hours / 3 nights / Weeks).
 - **Dashboard design system** in CSS variables:
-  - near-black navy background (`#0b1020`-ish) with slightly lighter panels and thin borders;
-  - aurora green/teal accents (`#2ee6a6` / `#14b8a6`-ish) for probabilities and key metrics; amber/red only for storm levels;
+  - periwinkle sky background (`#1e2850` → `#3a4a80` → `#5a5c94`, lavender at the bottom) with dark translucent glass panels and thin borders (changed 2026-10-09 to colours picked from a photo of the aurora over snow);
+  - pale mint accent (`#c4eed6`) for probabilities and key metrics, lavender (`#c4b6de`) as secondary; amber/red only for storm levels;
   - a clean sans-serif (Inter or IBM Plex Sans) and a monospace for numbers and timestamps, with tabular figures so numbers line up;
   - a dense, aligned grid of cards, small uppercase labels, "last updated" timestamps and source attribution on every panel.
 - Show confidence visually:
@@ -235,7 +235,7 @@ aurora-forecast/
 
 *Day 5 decisions* (code: `app/static/`, `aurora/briefing.py`, `app/main.py`):
 - **Map tiles:** CARTO Dark Matter now returns "API KEY REQUIRED" tiles. Replaced with Esri Dark Gray Canvas
-  (base + label layers, no key, attribution shown), tinted towards the navy theme with a CSS filter.
+  (base + label layers, no key, attribution shown), tinted towards the slate-blue sky with a CSS filter.
 - **No Chart.js:** the hourly chart is six CSS bars inside a small table (chance solid, chance-if-clear
   outlined, shared 2/5/10/20/50/100% scale), nights use range bars. No charting library to load.
 - **Frontend:** plain ES module, no build. Location from the map, Open-Meteo geocoding search or browser
@@ -284,7 +284,7 @@ aurora-forecast/
   (training base rate), same definitions as the offline evaluation. Kp ≥ 4 because Kp ≥ 5 is too rare to
   score in the first weeks. Observed Kp is the nowcast, so scores are labelled provisional.
 - **Charts:** inline SVG (no library). Horizons use an ordinal teal ramp validated for dark mode
-  (`#2ee6a6`, `#16a889`, `#2b6f74`), brightest for 1 h: colour fades with lead time like confidence.
+  (`#c4eed6`, `#b0a3c4`, `#7a8cc4`, mint fading into the sky), brightest for 1 h: colour fades with lead time like confidence.
 - **Sentry check:** `/api/sentry-test?key=…` raises a deliberate error. It returns 404 unless
   `SENTRY_TEST_KEY` is set and matches, so strangers can't burn the free error quota.
 - **Host: Render, not Hugging Face Spaces.** Since mid-2026, new Docker Spaces need HF's paid PRO plan,

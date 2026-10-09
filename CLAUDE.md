@@ -32,10 +32,13 @@ when decisions change.
 
 ## Design direction
 Clear and professional, like a modern space-data dashboard. **Not** cute or cozy.
-- Dark theme (near-black navy background, slightly lighter panels, thin borders).
-- Aurora green/teal accents for probabilities and key metrics; amber/red only for storm levels.
+- Palette picked from a photo of the aurora over snow: periwinkle `#546A9C`, slate blue `#6878A6`,
+  lavender `#B0A3C4`, pale mint `#D5E0DA`, snow `#E8E8E8`. The page background is the sky
+  (dark periwinkle fading to lavender); panels are dark translucent glass with thin borders.
+- Pale mint accent (aurora curtain) for probabilities and key metrics, lavender as the secondary
+  accent; amber/red only for storm levels. All colours are tokens in `app/static/css/app.css`.
 - Clean sans-serif typography (Inter / IBM Plex Sans), monospace with tabular figures for numbers.
-- Dark map tiles (Esri Dark Gray Canvas, tinted navy; CARTO now needs a key) with Leaflet.
+- Dark map tiles (Esri Dark Gray Canvas, tinted slate blue; CARTO now needs a key) with Leaflet.
 - Confidence shown visually: solid and exact for hours, softer with ranges for nights, dashed
   and text-only for weeks.
 - `design-references/` is local inspiration only and is gitignored.

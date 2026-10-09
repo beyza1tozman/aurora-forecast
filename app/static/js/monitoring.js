@@ -1,7 +1,7 @@
 // /monitoring: forecast log vs observed Kp. Charts are small inline SVGs.
 
 const $ = (id) => document.getElementById(id);
-const HORIZON_COLORS = { 1: "#2ee6a6", 3: "#16a889", 6: "#2b6f74" }; // ordinal ramp, validated
+const HORIZON_COLORS = { 1: "#c4eed6", 3: "#b0a3c4", 6: "#7a8cc4" }; // fades from aurora mint into the sky with lead time
 const NS = "http://www.w3.org/2000/svg";
 
 const dt = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });

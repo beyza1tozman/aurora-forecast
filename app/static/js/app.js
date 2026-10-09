@@ -13,6 +13,9 @@ const FEEDS = [
 ];
 
 const $ = (id) => document.getElementById(id);
+// Leaflet needs literal colours, so read them from the CSS tokens.
+const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const COLORS = { bg: cssVar("--bg"), accent: cssVar("--accent"), accent2: cssVar("--accent-2") };
 
 // ---------- formatting ----------
 
@@ -103,9 +106,9 @@ L.tileLayer(`${ESRI}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, {
 
 const marker = L.circleMarker([current.lat, current.lon], {
   radius: 7,
-  color: "#0b1020",
+  color: COLORS.bg,
   weight: 2,
-  fillColor: "#2ee6a6",
+  fillColor: COLORS.accent,
   fillOpacity: 1,
 }).addTo(map);
 
@@ -124,14 +127,14 @@ function renderLines(data) {
     if (!line.points.length) continue;
     if (line.id === "now") {
       // Soft glow under a crisp line: the one bold element on the map.
-      L.polyline(line.points, { color: "#2ee6a6", weight: 14, opacity: 0.12, interactive: false }).addTo(linesLayer);
-      L.polyline(line.points, { color: "#2ee6a6", weight: 2, opacity: 0.95, interactive: false })
+      L.polyline(line.points, { color: COLORS.accent, weight: 14, opacity: 0.12, interactive: false }).addTo(linesLayer);
+      L.polyline(line.points, { color: COLORS.accent, weight: 2, opacity: 0.95, interactive: false })
         .bindTooltip(`Kp ${kp(line.kp)} now`, { permanent: true, direction: "top", className: "line-label", offset: [0, -4] })
         .addTo(linesLayer)
         .openTooltip(labelPoint(line.points));
       legend.push(`<li><i class="lk now"></i>Visible north of this line now (Kp ${kp(line.kp)})</li>`);
     } else {
-      L.polyline(line.points, { color: "#14b8a6", weight: 1.5, opacity: 0.9, dashArray: "6 6", interactive: false })
+      L.polyline(line.points, { color: COLORS.accent2, weight: 1.5, opacity: 0.9, dashArray: "6 6", interactive: false })
         .bindTooltip(`Kp ${kp(line.kp)}`, { permanent: true, direction: "bottom", className: "line-label dim", offset: [0, 4] })
         .addTo(linesLayer)
         .openTooltip(labelPoint(line.points));

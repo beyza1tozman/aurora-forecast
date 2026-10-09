@@ -1,21 +1,30 @@
-/* Aurora Forecast dashboard. Dark only: it is a night-sky tool. */
+/* Aurora Forecast dashboard. One theme only: it is a night-sky tool. */
 
 :root {
-  --bg: #0b1020;
-  --panel: #111831;
-  --panel-2: #0e1529;
-  --border: #1f2a47;
-  --border-strong: #2c3a5f;
-  --grid: #1a2440;
+  /* Palette picked from a photo of the aurora over snow: periwinkle sky (#546A9C),
+     slate blue (#6878A6), lavender (#B0A3C4), pale mint curtain (#D5E0DA), snow (#E8E8E8).
+     The page is the sky; panels are dark glass on top of it. */
+  --bg: #1e2850;          /* top of the sky */
+  --bg-mid: #3a4a80;      /* periwinkle */
+  --bg-2: #5a5c94;        /* lower sky, turning lavender */
+  --panel: rgba(22, 30, 64, 0.62);
+  --panel-2: rgba(16, 22, 50, 0.5);
+  --border: rgba(213, 224, 218, 0.16);
+  --border-strong: rgba(213, 224, 218, 0.3);
+  --grid: rgba(213, 224, 218, 0.12);
 
-  --text: #e6ebf5;
-  --text-2: #aab4cc;
-  --muted: #7a87a6;
+  --text: #f4f5f8;
+  --text-2: #d5dae6;
+  --muted: #aab3d0;
 
-  --accent: #2ee6a6;      /* probabilities, key metrics */
-  --accent-2: #14b8a6;    /* secondary teal */
-  --accent-wash: rgba(46, 230, 166, 0.12);
-  --accent-soft: rgba(46, 230, 166, 0.55);
+  --accent-rgb: 196, 238, 214;
+  --accent: rgb(var(--accent-rgb));       /* pale mint: probabilities, key metrics */
+  --accent-2-rgb: 196, 182, 222;
+  --accent-2: rgb(var(--accent-2-rgb));   /* lavender: secondary */
+  --accent-wash: rgba(var(--accent-rgb), 0.14);
+  --accent-soft: rgba(var(--accent-rgb), 0.6);
+  --glass: rgba(26, 34, 72, 0.88);        /* overlays on the map */
+  --glass-dark: rgba(26, 34, 72, 0.75);
 
   --storm-g1: #f5a524;    /* amber: Kp 5-6 */
   --storm-g3: #ef4444;    /* red: Kp 7+ */
@@ -35,7 +44,12 @@
 html, body { margin: 0; height: 100%; }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(ellipse 55% 35% at 30% 38%, rgba(213, 224, 218, 0.16), transparent 70%),
+    radial-gradient(ellipse 40% 60% at 70% 70%, rgba(176, 163, 196, 0.22), transparent 70%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-mid) 55%, var(--bg-2) 100%);
+  background-attachment: fixed;
+  background-color: var(--bg);
   color: var(--text);
   font: 14px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
@@ -68,7 +82,7 @@ a { color: var(--accent-2); }
   align-items: center;
   gap: 20px;
   padding: 0 20px;
-  background: rgba(11, 16, 32, 0.92);
+  background: rgba(26, 34, 72, 0.8);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border);
 }
@@ -103,7 +117,7 @@ a { color: var(--accent-2); }
 .search input:focus, .icon-btn:focus-visible {
   outline: none;
   border-color: var(--accent-2);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--accent-2-rgb), 0.22);
 }
 
 .icon-btn {
@@ -132,7 +146,7 @@ a { color: var(--accent-2); }
   background: var(--panel);
   border: 1px solid var(--border-strong);
   border-radius: 8px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 32px rgba(10, 14, 36, 0.5);
 }
 
 .search-results li {
@@ -194,7 +208,7 @@ a { color: var(--accent-2); }
   overflow: hidden;
 }
 
-#map { position: absolute; inset: 0; background: #090d1a; }
+#map { position: absolute; inset: 0; background: var(--bg); }
 
 .map-chip {
   position: absolute;
@@ -203,7 +217,7 @@ a { color: var(--accent-2); }
   top: 12px;
   max-width: 280px;
   padding: 12px 14px;
-  background: rgba(17, 24, 49, 0.94);
+  background: var(--glass);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -220,6 +234,7 @@ a { color: var(--accent-2); }
 
 .card {
   background: var(--panel);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px 18px;
@@ -254,7 +269,7 @@ a { color: var(--accent-2); }
 }
 
 .tag:empty { display: none; }
-.tag-conf { border-color: rgba(46, 230, 166, 0.35); color: var(--accent); }
+.tag-conf { border-color: rgba(var(--accent-rgb), 0.35); color: var(--accent); }
 .tag-low { border-style: dashed; color: var(--muted); }
 
 .unavailable {
@@ -311,7 +326,7 @@ a { color: var(--accent-2); }
   background: linear-gradient(90deg, rgba(245, 165, 36, 0.45) 0 50%, rgba(239, 68, 68, 0.5) 50% 100%);
 }
 
-.reach { position: absolute; top: 0; bottom: 0; background: rgba(46, 230, 166, 0.35); }
+.reach { position: absolute; top: 0; bottom: 0; background: rgba(var(--accent-rgb), 0.35); }
 
 .mark { position: absolute; top: 50%; width: 0; }
 .mark span {
@@ -331,7 +346,7 @@ a { color: var(--accent-2); }
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 2px var(--panel), 0 0 12px rgba(46, 230, 166, 0.6);
+  box-shadow: 0 0 0 2px var(--panel), 0 0 12px rgba(var(--accent-rgb), 0.6);
 }
 .mark.now span { bottom: 12px; color: var(--text); }
 
@@ -357,7 +372,7 @@ a { color: var(--accent-2); }
 }
 
 .reach-note { display: flex; align-items: center; gap: 6px; margin: 30px 0 0; font-size: 12px; color: var(--muted); }
-.reach-note i { width: 14px; height: 6px; border-radius: 2px; background: rgba(46, 230, 166, 0.35); }
+.reach-note i { width: 14px; height: 6px; border-radius: 2px; background: rgba(var(--accent-rgb), 0.35); }
 
 .storm {
   font-family: var(--font);
@@ -508,7 +523,7 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
   bottom: 0;
   min-width: 4px;
   border-radius: 3px;
-  background: linear-gradient(90deg, rgba(46, 230, 166, 0.25), rgba(46, 230, 166, 0.6));
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.25), rgba(var(--accent-rgb), 0.6));
 }
 
 .night .kv { margin-top: 0; font-size: 11px; }
@@ -562,12 +577,12 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 
 /* ---------- Leaflet theming ---------- */
 
-.leaflet-container { font: 12px var(--font); background: #090d1a; }
-/* Esri's neutral dark gray, shifted towards the navy background. */
-.tiles-base { filter: sepia(0.35) hue-rotate(185deg) saturate(1.4) brightness(0.72); }
+.leaflet-container { font: 12px var(--font); background: var(--bg); }
+/* Esri's neutral dark gray, shifted towards the periwinkle sky. */
+.tiles-base { filter: sepia(1) hue-rotate(188deg) saturate(1.5) brightness(1.2); }
 .tiles-labels { opacity: 0.75; }
 .leaflet-control-attribution {
-  background: rgba(11, 16, 32, 0.8) !important;
+  background: var(--glass-dark) !important;
   color: var(--muted) !important;
 }
 .leaflet-control-attribution a { color: var(--text-2) !important; }
@@ -587,19 +602,19 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
   list-style: none;
   font-size: 12px;
   color: var(--text-2);
-  background: rgba(17, 24, 49, 0.94);
+  background: var(--glass);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
 .map-legend li { display: flex; align-items: center; gap: 8px; }
 .map-legend li + li { margin-top: 4px; }
 .lk { flex: none; width: 20px; height: 0; }
-.lk.now { border-top: 2px solid var(--accent); box-shadow: 0 0 8px 2px rgba(46, 230, 166, 0.35); }
+.lk.now { border-top: 2px solid var(--accent); box-shadow: 0 0 8px 2px rgba(var(--accent-rgb), 0.35); }
 .lk.fc { border-top: 2px dashed var(--accent-2); }
 
 .leaflet-tooltip.line-label {
   padding: 0 4px;
-  background: rgba(11, 16, 32, 0.75);
+  background: var(--glass-dark);
   border: 0;
   box-shadow: none;
   color: var(--accent);
@@ -672,7 +687,7 @@ a.brand { color: var(--text); text-decoration: none; }
 .chart .hit { fill: transparent; }
 .chart-empty { margin: 0; padding: 28px 0; color: var(--muted); text-align: center; }
 
-.key.line { height: 2px; background: #16a889; }
+.key.line { height: 2px; background: var(--accent); }
 .key.dot { border-radius: 50%; background: var(--text); }
 
 #scores { overflow-x: auto; }
