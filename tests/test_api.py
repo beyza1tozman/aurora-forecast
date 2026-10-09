@@ -20,9 +20,9 @@ def models():
     return load_models()
 
 
-def make_client(models, fail=frozenset(), tmp_path=None) -> TestClient:
+def make_client(models, fail=frozenset(), tmp_path=None, **transport) -> TestClient:
     service = ForecastService(
-        client=httpx.Client(transport=fixture_transport(fail)),
+        client=httpx.Client(transport=fixture_transport(fail, **transport)),
         models=models,
         noaa_calibration=NoaaCalibration.load(),
         clock=lambda: FIXTURE_NOW,
@@ -87,8 +87,25 @@ def test_solar_wind_outage_degrades_only_now_panel(models):
     assert body["nights"] is not None and body["weeks"] is not None
 
 
-def test_cloud_outage_keeps_chance_if_clear(models):
+def test_open_meteo_outage_falls_back_to_met_norway(models):
     client = make_client(models, fail={config.OPEN_METEO_URL})
+    body = client.get("/api/forecast", params=MUNICH).json()
+    assert "clouds" not in body["errors"]
+    assert all(h["chance"] is not None for h in body["now"]["hours"])
+    assert all(n["cloud_forecast_complete"] for n in body["nights"]["nights"])
+
+
+def test_open_meteo_429_is_skipped_during_cooldown(models):
+    calls = []
+    client = make_client(models, fail={config.OPEN_METEO_URL}, status=429, calls=calls)
+    client.get("/api/forecast", params=MUNICH)
+    client.get("/api/forecast", params={"lat": 52.52, "lon": 13.40})  # new cloud cell
+    assert calls.count(config.OPEN_METEO_URL) == 1
+    assert calls.count(config.MET_NORWAY_URL) == 2
+
+
+def test_cloud_outage_keeps_chance_if_clear(models):
+    client = make_client(models, fail={config.OPEN_METEO_URL, config.MET_NORWAY_URL})
     body = client.get("/api/forecast", params=MUNICH).json()
     assert "clouds" in body["errors"]
     hours = body["now"]["hours"]

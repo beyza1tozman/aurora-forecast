@@ -2,8 +2,10 @@
 
 Global inputs (solar wind, Kp, NOAA forecasts) are the same for every location
 and are cached for GLOBAL_TTL. Clouds are cached per ~0.1 degree cell for
-CLOUD_TTL. If one source fails, only the panel that needs it is marked
-unavailable; the rest of the response still works.
+CLOUD_TTL; they come from Open-Meteo, with MET Norway as the fallback, and a
+cached cloud forecast is reused for up to CLOUD_MAX_STALE if both fail. If one
+source fails, only the panel that needs it is marked unavailable; the rest of
+the response still works.
 """
 
 import logging
@@ -19,6 +21,7 @@ import numpy as np
 import pandas as pd
 
 from aurora import config
+from aurora.data.met_norway import fetch_clouds_met
 from aurora.data.noaa_live import fetch_json, fetch_kp, fetch_solar_wind
 from aurora.data.open_meteo import fetch_clouds
 from aurora.live import KpForecast, forecast_kp
@@ -40,6 +43,8 @@ log = logging.getLogger(__name__)
 
 GLOBAL_TTL = 300.0  # seconds
 CLOUD_TTL = 1800.0
+CLOUD_MAX_STALE = 6 * 3600.0  # reuse an older cloud forecast if every provider fails
+OPEN_METEO_COOLDOWN = 600.0  # after a 429, go straight to MET Norway for this long
 CLOUD_GRID = 0.1  # degrees
 HOURS_AHEAD = 6
 NIGHTS_LOOKAHEAD = pd.Timedelta("84h")
@@ -52,8 +57,12 @@ def utc_now() -> pd.Timestamp:
 
 
 class TTLCache:
-    def __init__(self, ttl: float):
+    """Values expire after ``ttl``. If recomputing fails, a value up to ``max_stale``
+    seconds past expiry is returned instead of the error."""
+
+    def __init__(self, ttl: float, max_stale: float = 0.0):
         self.ttl = ttl
+        self.max_stale = max_stale
         self._data: dict[Any, tuple[float, Any]] = {}
         self._lock = threading.Lock()
 
@@ -62,7 +71,13 @@ class TTLCache:
             hit = self._data.get(key)
             if hit and time.monotonic() - hit[0] < self.ttl:
                 return hit[1]
-        value = compute()
+        try:
+            value = compute()
+        except Exception:
+            if hit and time.monotonic() - hit[0] < self.ttl + self.max_stale:
+                log.warning("using a stale cached value for %s", key)
+                return hit[1]
+            raise
         with self._lock:
             self._data[key] = (time.monotonic(), value)
         return value
@@ -107,7 +122,8 @@ class ForecastService:
         self.noaa_calibration = noaa_calibration or NoaaCalibration.load()
         self.clock = clock
         self._global = TTLCache(GLOBAL_TTL)
-        self._clouds = TTLCache(CLOUD_TTL)
+        self._clouds = TTLCache(CLOUD_TTL, max_stale=CLOUD_MAX_STALE)
+        self._open_meteo_retry_at = 0.0
 
     # --- inputs -------------------------------------------------------------
 
@@ -143,7 +159,19 @@ class ForecastService:
 
     def clouds(self, lat: float, lon: float) -> pd.DataFrame:
         key = (round(lat / CLOUD_GRID), round(lon / CLOUD_GRID))
-        return self._clouds.get(key, lambda: fetch_clouds(self.client, lat, lon))
+        return self._clouds.get(key, lambda: self._fetch_clouds(lat, lon))
+
+    def _fetch_clouds(self, lat: float, lon: float) -> pd.DataFrame:
+        """Open-Meteo first, MET Norway if it fails. After a 429 (quota used up, often by
+        other apps on the same shared IP), skip Open-Meteo for OPEN_METEO_COOLDOWN."""
+        if time.monotonic() >= self._open_meteo_retry_at:
+            try:
+                return fetch_clouds(self.client, lat, lon)
+            except Exception as err:  # noqa: BLE001 - fall back to MET Norway
+                if isinstance(err, httpx.HTTPStatusError) and err.response.status_code == 429:
+                    self._open_meteo_retry_at = time.monotonic() + OPEN_METEO_COOLDOWN
+                log.warning("Open-Meteo clouds failed, trying MET Norway: %s", err)
+        return fetch_clouds_met(self.client, lat, lon)
 
     # --- map lines ------------------------------------------------------------
 

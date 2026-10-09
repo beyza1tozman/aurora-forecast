@@ -16,7 +16,7 @@ when decisions change.
   data with GFZ Potsdam definitive Kp; NOAA SWPC live JSON feeds in production.
   Time-based split with embargo gaps, persistence/climatology baselines, calibrated
   P(Kp ≥ 5/6/7), separate evaluation on storm periods.
-- **Location score:** forecast Kp × geomagnetic latitude × cloud cover (Open-Meteo) ×
+- **Location score:** forecast Kp × geomagnetic latitude × cloud cover (Open-Meteo, MET Norway fallback) ×
   darkness × moon.
 - **Briefing:** LLM-generated daily text (Claude Haiku 4.5), cached, with a template fallback.
 - **Production:** FastAPI, Leaflet frontend, Docker, Render (free web service), pytest, GitHub

@@ -42,3 +42,8 @@ GFZ_KP_API_URL = "https://kp.gfz.de/app/json/"
 
 # Open-Meteo hourly weather forecast (cloud cover).
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+# Fallback: Open-Meteo rate-limits per IP, and Render's free tier shares outgoing IPs
+# with other apps, so its quota can be used up by others (seen 2026-10-09: HTTP 429).
+MET_NORWAY_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
+# MET Norway requires an identifying User-Agent with a contact.
+USER_AGENT = "aurora-forecast/1.0 (+https://github.com/beyza1tozman/aurora-forecast)"
