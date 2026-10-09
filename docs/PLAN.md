@@ -123,7 +123,7 @@ OMNI is **time-shifted to the bow shock**. NOAA's live feed (`services.swpc.noaa
 ## 5. Production notes and traps
 
 - **The free host is ephemeral.** SQLite is wiped on restart and deploy, and free services sleep when inactive. So the **monitoring log must live outside the container**. Recommended: a free Postgres (Neon or Supabase) through `DATABASE_URL`, with SQLite locally.
-- UptimeRobot pings `/health` every 5 min. This gives uptime monitoring and should also keep the Space awake (check this on Day 6).
+- UptimeRobot pings `/health` every 5 min. This gives uptime monitoring and keeps the Render service awake (checked on Day 6: HEAD /health returns 200, the log has no sleep gaps).
 - **Scheduler:** APScheduler in-process. Every 15 min: fetch NOAA, run the forecast, and log it. Every hour: fetch the observed Kp (GFZ nowcast JSON API) and join it to past forecasts.
 - **Frontend:** plain HTML/CSS/JS plus **Leaflet**, served by FastAPI as static files. There is no Node build step, so Docker stays simple. Dark map tiles: **Esri Dark Gray Canvas** (CARTO Dark Matter needs an API key since 2026, see Day 5). Credit Esri and OpenStreetMap on the map.
 - **Live NOAA endpoints (checked on Day 1, 2026-10-03):**
@@ -258,7 +258,7 @@ aurora-forecast/
   lines run diagonally across Europe because the dipole pole is tilted towards Canada. In the hours panel,
   the four stat tiles were replaced by a Kp 0–9 scale showing now, the 10% reach and the Kp needed here.
 
-**Day 6: Deployment and ops** — **code done, accounts and first deploy pending**
+**Day 6: Deployment and ops** — **done** (live at https://aurora-forecast-zqnk.onrender.com, checked 2026-10-09)
 - Dockerfile, run locally, deploy to Render, and set up the external Postgres.
 - DB models (SQLAlchemy: forecasts, observations, briefings), scheduler, forecast logging and observed-Kp verification job. `/monitoring` page in the same dashboard style: Brier score over time, a forecast-vs-observed plot, and the number of verified forecasts.
 - Sentry, UptimeRobot, and Render deploying on push to `main` after CI passes.
@@ -313,4 +313,5 @@ aurora-forecast/
 - `pytest` green locally and in CI (leakage, monotonicity, geomag, API with mocks).
 - `scripts/evaluate.py` produces BSS > 0 vs persistence at h = 3 and 6 h on the test set. At h = 1 h, persistence is very hard to beat; report it honestly either way.
 - `docker run` locally, then `/health` returns 200 and `/api/forecast?lat=53.5&lon=10` returns a sensible output.
-- The deployed Space: UptimeRobot is green, a Sentry test error arrives, and `/monitoring` shows new rows after 1 h.
+- The deployed Render service: UptimeRobot is green, a Sentry test error arrives, and `/monitoring` shows new rows
+  after 1 h (except on Kp-boundary hours, see Day 6). All checked on 2026-10-09.
