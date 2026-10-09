@@ -298,6 +298,14 @@ aurora-forecast/
 - Fix whatever broke. README with a GIF, an architecture diagram, the results table and a **Limitations** section.
 - Write down your interview talking points (sections 1–3 of this plan).
 
+*Day 7 fixes* (code: `aurora/data/met_norway.py`, `app/services.py`):
+- **Clouds failed on Render with HTTP 429 (found 2026-10-09).** Open-Meteo's free quota is per IP, and
+  Render's free tier shares outgoing IPs with other apps, so the quota was used up by others (the same
+  request from a home IP worked). Fix, all free and keyless: **MET Norway Locationforecast** as the
+  fallback (same low/mid/high layers; hourly for ~2.5 days, then 6-hourly, interpolated to hours; needs
+  an identifying User-Agent and a credit). After a 429, Open-Meteo is skipped for 10 min. If both
+  providers fail, the last cloud forecast for that cell is reused for up to 6 h.
+
 ---
 
 ## 8. Too much for one week: cut or reduce
